@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Caputo Ações | Prêmios Oficiais</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons (Lightweight & beautiful icons) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#111827',
+                            light: '#f3f4f6',
+                            gold: '#ca8a04',
+                            action: '#16a34a' // Green for conversions
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom styles to hide scrollbars but allow scrolling for horizontal menus */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Fade in animation for tab content */
+        .tab-enter {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans antialiased selection:bg-brand-gold selection:text-white pb-24">
+
+    <!-- HEADER & LOGO -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-md mx-auto px-4 py-4 flex flex-col items-center justify-center">
+            <!-- CSS Reproduction of the Logo for fast loading and crisp look -->
+            <div class="flex flex-col items-center justify-center select-none">
+                <div class="relative flex items-center justify-center h-16 w-16 mb-1">
+                    <!-- Overlapping C and A representation -->
+                    <span class="font-serif text-[4.5rem] leading-none text-black absolute -ml-4">C</span>
+                    <span class="font-serif text-[4.5rem] leading-none text-black absolute ml-4 italic">A</span>
+                </div>
+                <h1 class="font-serif text-3xl tracking-[0.25em] text-black mt-3 ml-2">CAPUTO</h1>
+                <div class="flex items-center gap-3 mt-1 w-full justify-center">
+                    <div class="h-[1px] w-12 bg-black"></div>
+                    <h2 class="font-sans text-xs font-semibold tracking-[0.3em] text-black">AÇÕES</h2>
+                    <div class="h-[1px] w-12 bg-black"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-md mx-auto">
+
+        <!-- HIGHLIGHT/FLYER SECTION (Always visible at the top) -->
+        <section class="bg-white p-4 pb-6 shadow-sm mb-2">
+            <div class="relative w-full aspect-[4/5] rounded-2xl overflow-hidden shadow-lg border border-gray-200 bg-gray-900 group">
+                <!-- Placeholder for the main flyer image -->
+                <img src="https://placehold.co/800x1000/111827/ca8a04?text=FOTO+DA+AÇÃO\n(FLYER+AQUI)" alt="Flyer Ação Principal" class="w-full h-full object-cover">
+                
+                <!-- Overlay Gradient -->
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4">
+                    <span class="bg-red-600 text-white text-xs font-bold uppercase px-3 py-1 rounded-full w-max mb-2 animate-pulse-slow">
+                        Encerrando em breve!
+                    </span>
+                    <h3 class="text-white font-bold text-2xl leading-tight mb-1 shadow-black drop-shadow-md">NOVA HILUX 4x4 + R$ 20 MIL</h3>
+                    <p class="text-gray-300 text-sm mb-4">Apenas R$ 0,50 a cota. Sorteio pela Loteria Federal.</p>
+                    
+                    <!-- HUGE CTA BUTTON -->
+                    <button onclick="alert('Neste momento, o usuário seria redirecionado para a página de compra de números.')" class="w-full bg-brand-action hover:bg-green-500 text-white font-bold text-lg py-4 rounded-xl shadow-[0_4px_0_0_#14532d] active:shadow-[0_0px_0_0_#14532d] active:translate-y-1 transition-all flex items-center justify-center gap-2">
+                        <i class="ph ph-shopping-cart text-2xl"></i>
+                        COMPRAR NÚMEROS
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TABS NAVIGATION -->
+        <section class="bg-white sticky top-[116px] z-40 shadow-sm border-b border-gray-200">
+            <!-- Scrollable container for tabs on small screens -->
+            <div class="flex overflow-x-auto no-scrollbar gap-2 p-3 items-center" id="tabs-container">
+                <button onclick="switchTab('ativas', this)" class="tab-btn flex-shrink-0 flex items-center gap-2 bg-brand-dark text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all">
+                    <i class="ph ph-target text-lg"></i> Ativas
+                </button>
+                <button onclick="switchTab('ganhadores', this)" class="tab-btn flex-shrink-0 flex items-center gap-2 bg-gray-100 text-gray-600 px-5 py-2.5 rounded-full text-sm font-semibold transition-all">
+                    <i class="ph ph-trophy text-lg"></i> Ganhadores
+                </button>
+                <button onclick="switchTab('resultados', this)" class="tab-btn flex-shrink-0 flex items-center gap-2 bg-gray-100 text-gray-600 px-5 py-2.5 rounded-full text-sm font-semibold transition-all">
+                    <i class="ph ph-video-camera text-lg"></i> Resultados
+                </button>
+                <button onclick="switchTab('passadas', this)" class="tab-btn flex-shrink-0 flex items-center gap-2 bg-gray-100 text-gray-600 px-5 py-2.5 rounded-full text-sm font-semibold transition-all">
+                    <i class="ph ph-clock-counter-clockwise text-lg"></i> Encerradas
+                </button>
+            </div>
+        </section>
+
+        <!-- CONTENT SECTIONS -->
+        <div class="p-4 min-h-[50vh]">
+            
+            <!-- TAB 1: AÇÕES ATIVAS -->
+            <div id="tab-ativas" class="tab-content tab-enter">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-1.5 h-6 bg-brand-dark rounded-full"></div>
+                    <h3 class="font-bold text-lg text-brand-dark">Ações Disponíveis</h3>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Action Card -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="flex p-3 gap-4">
+                            <div class="w-24 h-24 rounded-xl bg-gray-200 flex-shrink-0 overflow-hidden">
+                                <img src="https://placehold.co/200x200/111827/ca8a04?text=IPHONE" alt="Iphone 15" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex flex-col justify-center flex-1">
+                                <span class="text-[10px] font-bold text-brand-action uppercase tracking-wider mb-1">70% Vendido</span>
+                                <h4 class="font-bold text-gray-900 leading-tight mb-1">iPhone 15 Pro Max 256GB</h4>
+                                <p class="text-xs text-gray-500 mb-2">Por apenas R$ 0,10</p>
+                                
+                                <!-- Progress bar -->
+                                <div class="w-full bg-gray-100 rounded-full h-2 mb-2">
+                                    <div class="bg-brand-action h-2 rounded-full" style="width: 70%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-gray-50 border-t border-gray-100">
+                            <button onclick="alert('Redirecionar para página da rifa do iPhone')" class="w-full bg-brand-dark text-white font-bold py-2.5 rounded-lg text-sm shadow flex items-center justify-center gap-2">
+                                PARTICIPAR AGORA <i class="ph-bold ph-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: GANHADORES (Bilhete Premiado) -->
+            <div id="tab-ganhadores" class="tab-content hidden tab-enter">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-1.5 h-6 bg-brand-gold rounded-full"></div>
+                    <h3 class="font-bold text-lg text-brand-dark">Bilhetes Premiados</h3>
+                </div>
+                <p class="text-sm text-gray-600 mb-4">Confira quem já mudou de vida com a Caputo Ações.</p>
+
+                <div class="space-y-4">
+                    <!-- Winner Card 1 -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden relative">
+                        <div class="absolute top-0 right-0 bg-brand-gold text-white text-xs font-bold px-3 py-1 rounded-bl-xl z-10 flex items-center gap-1">
+                            <i class="ph-fill ph-star"></i> Entregue
+                        </div>
+                        <img src="https://placehold.co/600x400/222/ca8a04?text=FOTO+DO+GANHADOR+COM+CARRO" alt="Ganhador" class="w-full h-48 object-cover">
+                        <div class="p-4">
+                            <h4 class="font-bold text-lg text-gray-900">João Silva</h4>
+                            <p class="text-sm text-gray-600">Ganhador da <span class="font-semibold">S10 Midnight + R$ 10k</span></p>
+                            
+                            <div class="mt-3 bg-gray-50 border border-gray-200 rounded-lg p-3 flex justify-between items-center">
+                                <div>
+                                    <p class="text-xs text-gray-500 uppercase font-semibold">Bilhete Sorteado</p>
+                                    <p class="font-mono text-xl font-bold text-brand-action">589.412</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-gray-500 uppercase font-semibold">Data</p>
+                                    <p class="text-sm font-medium text-gray-800">12/08/2026</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Winner Card 2 -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden relative">
+                        <div class="absolute top-0 right-0 bg-brand-gold text-white text-xs font-bold px-3 py-1 rounded-bl-xl z-10 flex items-center gap-1">
+                            <i class="ph-fill ph-star"></i> Entregue
+                        </div>
+                        <img src="https://placehold.co/600x400/222/ca8a04?text=FOTO+DA+GANHADORA+MOTO" alt="Ganhadora" class="w-full h-48 object-cover">
+                        <div class="p-4">
+                            <h4 class="font-bold text-lg text-gray-900">Maria Oliveira</h4>
+                            <p class="text-sm text-gray-600">Ganhadora da <span class="font-semibold">Honda XRE 300</span></p>
+                            
+                            <div class="mt-3 bg-gray-50 border border-gray-200 rounded-lg p-3 flex justify-between items-center">
+                                <div>
+                                    <p class="text-xs text-gray-500 uppercase font-semibold">Bilhete Sorteado</p>
+                                    <p class="font-mono text-xl font-bold text-brand-action">102.884</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-gray-500 uppercase font-semibold">Data</p>
+                                    <p class="text-sm font-medium text-gray-800">25/07/2026</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: RESULTADOS (Vídeos) -->
+            <div id="tab-resultados" class="tab-content hidden tab-enter">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-1.5 h-6 bg-red-600 rounded-full"></div>
+                    <h3 class="font-bold text-lg text-brand-dark">Comprovações e Entregas</h3>
+                </div>
+                <p class="text-sm text-gray-600 mb-4">Transparência total. Assista aos vídeos das entregas dos nossos prêmios.</p>
+
+                <div class="space-y-6">
+                    <!-- Video Card 1 -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                        <!-- Placeholder for YouTube/Vimeo embed -->
+                        <div class="aspect-video bg-gray-900 relative flex items-center justify-center">
+                            <img src="https://placehold.co/800x450/111/fff?text=TUMBNAIL+DO+VIDEO" alt="Video Thumbnail" class="absolute inset-0 w-full h-full object-cover opacity-60">
+                            <button class="relative z-10 w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 transition-transform">
+                                <i class="ph-fill ph-play text-2xl"></i>
+                            </button>
+                        </div>
+                        <div class="p-4">
+                            <h4 class="font-bold text-gray-900 leading-tight">Entrega da S10 Midnight para o João Silva</h4>
+                            <p class="text-xs text-gray-500 mt-1"><i class="ph ph-calendar"></i> Publicado em 14 Ago 2026</p>
+                        </div>
+                    </div>
+
+                    <!-- Video Card 2 -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="aspect-video bg-gray-900 relative flex items-center justify-center">
+                            <img src="https://placehold.co/800x450/111/fff?text=TUMBNAIL+DO+VIDEO+2" alt="Video Thumbnail" class="absolute inset-0 w-full h-full object-cover opacity-60">
+                            <button class="relative z-10 w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 transition-transform">
+                                <i class="ph-fill ph-play text-2xl"></i>
+                            </button>
+                        </div>
+                        <div class="p-4">
+                            <h4 class="font-bold text-gray-900 leading-tight">Sorteio Ao Vivo - Ação Honda XRE</h4>
+                            <p class="text-xs text-gray-500 mt-1"><i class="ph ph-calendar"></i> Publicado em 25 Jul 2026</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: AÇÕES PASSADAS -->
+            <div id="tab-passadas" class="tab-content hidden tab-enter">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-1.5 h-6 bg-gray-400 rounded-full"></div>
+                    <h3 class="font-bold text-lg text-brand-dark">Ações Encerradas</h3>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Past Action 1 -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden opacity-75">
+                        <img src="https://placehold.co/300x300/333/fff?text=MOTO+BMW" alt="Encerrada" class="w-full aspect-square object-cover grayscale">
+                        <div class="p-2 text-center bg-gray-100">
+                            <span class="bg-gray-800 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Finalizada</span>
+                            <h4 class="font-semibold text-xs text-gray-800 mt-1 truncate">BMW GS 1200</h4>
+                        </div>
+                    </div>
+                    <!-- Past Action 2 -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden opacity-75">
+                        <img src="https://placehold.co/300x300/333/fff?text=R$+10.000" alt="Encerrada" class="w-full aspect-square object-cover grayscale">
+                        <div class="p-2 text-center bg-gray-100">
+                            <span class="bg-gray-800 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Finalizada</span>
+                            <h4 class="font-semibold text-xs text-gray-800 mt-1 truncate">10 Mil no PIX</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FIXED BOTTOM CONTACT BAR -->
+    <div class="fixed bottom-0 w-full bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50">
+        <div class="max-w-md mx-auto p-3 flex gap-3">
+            <a href="https://wa.me/5500000000000" target="_blank" class="flex-1 bg-[#25D366] text-white flex items-center justify-center gap-2 py-3 rounded-xl font-bold shadow-sm active:scale-95 transition-transform">
+                <i class="ph-fill ph-whatsapp-logo text-2xl"></i>
+                Suporte
+            </a>
+            <a href="https://instagram.com/caputoacoes" target="_blank" class="flex-1 bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white flex items-center justify-center gap-2 py-3 rounded-xl font-bold shadow-sm active:scale-95 transition-transform">
+                <i class="ph-fill ph-instagram-logo text-2xl"></i>
+                Instagram
+            </a>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT FOR TAB LOGIC -->
+    <script>
+        function switchTab(tabId, clickedBtn) {
+            // 1. Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            // 2. Remove active styling from all buttons
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                btn.className = "tab-btn flex-shrink-0 flex items-center gap-2 bg-gray-100 text-gray-600 px-5 py-2.5 rounded-full text-sm font-semibold transition-all";
+            });
+
+            // 3. Show the selected tab content
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+
+            // 4. Add active styling to the clicked button
+            clickedBtn.className = "tab-btn flex-shrink-0 flex items-center gap-2 bg-brand-dark text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all";
+            
+            // 5. Scroll slightly to ensure content is in view if on mobile, without hiding the header
+            const yOffset = -120; 
+            const element = document.getElementById('tab-' + tabId);
+            const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({top: y, behavior: 'smooth'});
+        }
+    </script>
+</body>
+</html>

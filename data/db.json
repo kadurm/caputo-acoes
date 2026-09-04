@@ -1,0 +1,76 @@
+{
+  "destaque": {
+    "id": "destaque_1",
+    "titulo": "NOVA HILUX 4x4 + R$ 20 MIL",
+    "subtitulo": "Apenas R$ 0,50 a cota. Sorteio pela Loteria Federal.",
+    "precoCota": "0,50",
+    "imagemUrl": "https://placehold.co/800x1000/111827/ca8a04?text=FOTO+DA+AÇÃO\n(FLYER+AQUI)",
+    "statusBadge": "Encerrando em breve!",
+    "linkCheckout": "https://wa.me/5500000000000",
+    "porcentagemVendido": 85
+  },
+  "acoes": [
+    {
+      "id": "acao_1",
+      "titulo": "iPhone 15 Pro Max 256GB",
+      "precoCota": "0,10",
+      "imagemUrl": "https://placehold.co/200x200/111827/ca8a04?text=IPHONE",
+      "porcentagemVendido": 70,
+      "localExibicao": "Aba: Ativas",
+      "linkCheckout": "https://wa.me/5500000000000",
+      "status": "ativa"
+    }
+  ],
+  "encerradas": [
+    {
+      "id": "enc_1",
+      "titulo": "BMW GS 1200",
+      "imagemUrl": "https://placehold.co/300x300/333/fff?text=MOTO+BMW",
+      "status": "Finalizada"
+    },
+    {
+      "id": "enc_2",
+      "titulo": "10 Mil no PIX",
+      "imagemUrl": "https://placehold.co/300x300/333/fff?text=R$+10.000",
+      "status": "Finalizada"
+    }
+  ],
+  "ganhadores": [
+    {
+      "id": "ganhador_1",
+      "nome": "João Silva",
+      "premio": "S10 Midnight + R$ 10k",
+      "bilhete": "589.412",
+      "data": "12/08/2026",
+      "imagemUrl": "https://placehold.co/600x400/222/ca8a04?text=FOTO+DO+GANHADOR+COM+CARRO"
+    },
+    {
+      "id": "ganhador_2",
+      "nome": "Maria Oliveira",
+      "premio": "Honda XRE 300",
+      "bilhete": "102.884",
+      "data": "25/07/2026",
+      "imagemUrl": "https://placehold.co/600x400/222/ca8a04?text=FOTO+DA+GANHADORA+MOTO"
+    }
+  ],
+  "videos": [
+    {
+      "id": "video_1",
+      "titulo": "Entrega da S10 Midnight para o João Silva",
+      "data": "14 Ago 2026",
+      "videoUrl": "https://youtube.com",
+      "thumbnailUrl": "https://placehold.co/800x450/111/fff?text=THUMBNAIL+DO+VIDEO"
+    },
+    {
+      "id": "video_2",
+      "titulo": "Sorteio Ao Vivo - Ação Honda XRE",
+      "data": "25 Jul 2026",
+      "videoUrl": "https://youtube.com",
+      "thumbnailUrl": "https://placehold.co/800x450/111/fff?text=THUMBNAIL+DO+VIDEO+2"
+    }
+  ],
+  "config": {
+    "whatsappUrl": "https://wa.me/5500000000000",
+    "instagramUrl": "https://instagram.com/caputoacoes"
+  }
+}

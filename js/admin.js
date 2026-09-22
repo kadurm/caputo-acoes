@@ -257,11 +257,17 @@ function renderAdminDashboard(db) {
   const videosGrid = document.querySelector('#view-videos .grid');
   if (videosGrid && db.videos) {
     videosGrid.innerHTML = db.videos.map(v => {
-      const isMp4 = v.videoUrl && v.videoUrl.toLowerCase().includes('.mp4');
-      const mediaHtml = isMp4 ? `
+      const isDirectVideo = v.videoUrl && (
+        v.videoUrl.toLowerCase().includes('.mp4') ||
+        v.videoUrl.toLowerCase().includes('.webm') ||
+        v.videoUrl.toLowerCase().includes('.mov') ||
+        v.videoUrl.includes('cloudinary.com') ||
+        v.videoUrl.startsWith('data:video/')
+      );
+      const mediaHtml = isDirectVideo ? `
         <div class="aspect-[9/16] bg-black relative flex items-center justify-center">
             <video controls preload="metadata" playsinline class="w-full h-full object-cover">
-                <source src="${v.videoUrl}" type="video/mp4">
+                <source src="${v.videoUrl}">
             </video>
         </div>
       ` : `
@@ -292,10 +298,15 @@ function renderAdminDashboard(db) {
 
   // Populate Config Form
   if (db.config) {
-    const whatsappInput = document.querySelector('#view-configuracoes input[type="url"]:first-of-type');
-    const instagramInput = document.querySelector('#view-configuracoes input[type="url"]:last-of-type');
+    const whatsappInput = document.getElementById('config-whatsapp') || document.querySelector('#view-configuracoes input[type="url"]:first-of-type');
+    const instagramInput = document.getElementById('config-instagram') || document.querySelector('#view-configuracoes input[type="url"]:last-of-type');
+    const cloudNameInput = document.getElementById('config-cloudinary-cloudname');
+    const presetInput = document.getElementById('config-cloudinary-preset');
+
     if (whatsappInput && db.config.whatsappUrl) whatsappInput.value = db.config.whatsappUrl;
     if (instagramInput && db.config.instagramUrl) instagramInput.value = db.config.instagramUrl;
+    if (cloudNameInput && db.config.cloudinaryCloudName) cloudNameInput.value = db.config.cloudinaryCloudName;
+    if (presetInput && db.config.cloudinaryUploadPreset) presetInput.value = db.config.cloudinaryUploadPreset;
   }
 }
 
@@ -329,23 +340,133 @@ async function handleFileUpload(fileInput, formKey) {
   }
 }
 
-// Upload Video Handler via API (/api/upload)
+// Upload Video Handler via API or Direct Cloudinary
 async function handleVideoUpload(fileInput, formKey) {
   if (!fileInput.files || fileInput.files.length === 0) return;
   const file = fileInput.files[0];
-
-  const infoEl = document.getElementById('video-upload-info');
   const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+  const infoEl = document.getElementById('video-upload-info');
 
-  if (infoEl) {
-    infoEl.innerHTML = `<i class="ph-bold ph-spinner animate-spin text-red-600 text-base"></i> Enviando ${file.name} (${sizeMB} MB)... Por favor, aguarde.`;
-    infoEl.className = "mt-2 text-xs text-blue-600 flex items-center gap-1.5 font-medium";
+  const updateProgress = (percent, statusText) => {
+    if (infoEl) {
+      infoEl.innerHTML = `
+        <div class="w-full mt-1">
+          <div class="flex justify-between items-center text-xs text-brand-dark mb-1 font-semibold">
+            <span><i class="ph-bold ph-spinner animate-spin"></i> ${statusText || 'Enviando...'}</span>
+            <span>${percent}%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-red-600 h-1.5 rounded-full transition-all duration-300" style="width: ${percent}%"></div>
+          </div>
+        </div>
+      `;
+      infoEl.className = "mt-2 text-xs flex flex-col gap-1";
+    }
+  };
+
+  showToast(`Iniciando envio do vídeo (${sizeMB} MB)...`, 'info');
+  updateProgress(10, `Iniciando upload (${sizeMB} MB)...`);
+
+  // 1. Verificar se Cloudinary está configurado para upload direto (Sem limite de 4.5MB da Vercel)
+  let signData = null;
+  try {
+    const signRes = await fetch('/api/upload/sign', {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    if (signRes.ok) {
+      signData = await signRes.json();
+    }
+  } catch (e) {
+    console.warn('Verificação de upload direto:', e);
   }
 
-  showToast(`Enviando vídeo (${sizeMB} MB)...`, 'info');
+  // 2. Se Cloudinary estiver disponível: Upload Direto do Navegador
+  if (signData && signData.success && signData.cloudName) {
+    const cloudFormData = new FormData();
+    cloudFormData.append('file', file);
 
+    if (signData.type === 'signed') {
+      cloudFormData.append('api_key', signData.apiKey);
+      cloudFormData.append('timestamp', signData.timestamp);
+      cloudFormData.append('signature', signData.signature);
+      cloudFormData.append('folder', signData.folder);
+    } else if (signData.type === 'unsigned') {
+      cloudFormData.append('upload_preset', signData.uploadPreset);
+    }
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `https://api.cloudinary.com/v1_1/${signData.cloudName}/video/upload`);
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        const percent = Math.min(98, Math.round((e.loaded / e.total) * 98));
+        updateProgress(percent, `Enviando para a nuvem (${percent}%)...`);
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const response = JSON.parse(xhr.responseText);
+          uploadedVideoUrls[formKey] = response.secure_url;
+          if (infoEl) {
+            infoEl.innerHTML = `<i class="ph-fill ph-check-circle text-green-600 text-base"></i> Vídeo pronto: <strong>${file.name}</strong> (${sizeMB} MB)`;
+            infoEl.className = "mt-2 text-xs text-green-700 flex items-center gap-1.5 font-medium";
+          }
+          showToast('Vídeo enviado com sucesso!', 'success');
+        } catch (parseErr) {
+          handleUploadFallback(file, formKey, sizeMB, infoEl, updateProgress);
+        }
+      } else {
+        console.error('Erro na resposta do Cloudinary:', xhr.responseText);
+        handleUploadFallback(file, formKey, sizeMB, infoEl, updateProgress);
+      }
+    };
+
+    xhr.onerror = () => {
+      console.error('Erro de rede no Cloudinary');
+      handleUploadFallback(file, formKey, sizeMB, infoEl, updateProgress);
+    };
+
+    xhr.send(cloudFormData);
+    return;
+  }
+
+  // 3. Cloudinary não configurado
+  // Se o arquivo tiver mais que 4.5MB, a hospedagem Vercel aborta conexões com erro 413
+  if (file.size > 4.5 * 1024 * 1024) {
+    if (infoEl) {
+      infoEl.innerHTML = `
+        <div class="bg-amber-50 border border-amber-300 rounded-xl p-3 text-xs text-amber-900 mt-2">
+          <p class="font-bold flex items-center gap-1 mb-1 text-amber-950">
+            <i class="ph-bold ph-warning-circle text-base text-amber-600"></i> Arquivo de ${sizeMB} MB excede o limite do servidor (4.5 MB)
+          </p>
+          <p class="mb-2 leading-relaxed text-amber-900">
+            O servidor Vercel limita uploads diretos a 4.5 MB. Opções para este vídeo:
+          </p>
+          <ul class="list-disc list-inside space-y-1 font-medium text-amber-800">
+            <li>Conecte sua conta <strong>Cloudinary</strong> na aba Configurações (grátis até 100MB por vídeo), OU</li>
+            <li>Insira o link direto do vídeo (YouTube, Google Drive ou link direto) no campo abaixo, OU</li>
+            <li>Reduza a resolução do vídeo no celular/computador para menos de 4.5 MB.</li>
+          </ul>
+        </div>
+      `;
+      infoEl.className = "mt-2 text-xs flex flex-col gap-1";
+    }
+    showToast(`O arquivo tem ${sizeMB} MB (limite da Vercel sem Cloudinary é 4.5 MB).`, 'warning');
+    return;
+  }
+
+  // Arquivo menor que 4.5MB: upload pelo backend padrão
+  handleUploadFallback(file, formKey, sizeMB, infoEl, updateProgress);
+}
+
+// Fallback para envio padrão (/api/upload)
+async function handleUploadFallback(file, formKey, sizeMB, infoEl, updateProgress) {
   const formData = new FormData();
   formData.append('file', file);
+
+  updateProgress(40, `Enviando vídeo (${sizeMB} MB)...`);
 
   try {
     const res = await fetch('/api/upload', {
@@ -353,6 +474,15 @@ async function handleVideoUpload(fileInput, formKey) {
       headers: { 'Authorization': `Bearer ${authToken}` },
       body: formData
     });
+
+    if (res.status === 413) {
+      if (infoEl) {
+        infoEl.innerHTML = `<i class="ph-bold ph-warning-circle text-amber-600 text-base"></i> Arquivo muito grande (${sizeMB} MB). Limite de 4.5 MB atingido. Use um link ou ative o Cloudinary.`;
+        infoEl.className = "mt-2 text-xs text-amber-700 flex items-center gap-1.5 font-medium";
+      }
+      showToast('Arquivo excede o limite permitido pela hospedagem.', 'error');
+      return;
+    }
 
     const json = await res.json();
     if (json.success && json.url) {
@@ -372,7 +502,7 @@ async function handleVideoUpload(fileInput, formKey) {
   } catch (err) {
     console.error('Erro no upload de vídeo:', err);
     if (infoEl) {
-      infoEl.innerHTML = `<i class="ph-bold ph-warning-circle text-red-600 text-base"></i> Erro de conexão no upload.`;
+      infoEl.innerHTML = `<i class="ph-bold ph-warning-circle text-red-600 text-base"></i> Erro de conexão no upload. Para arquivos grandes, ative o Cloudinary ou use um link externo.`;
       infoEl.className = "mt-2 text-xs text-red-600 flex items-center gap-1.5 font-medium";
     }
     showToast('Falha de conexão ao enviar vídeo.', 'error');
@@ -574,12 +704,16 @@ async function deleteVideoItem(id) {
 // API CRUD Call: Configurações
 async function submitConfiguracoes(event) {
   event.preventDefault();
-  const form = event.target;
-  const inputs = form.querySelectorAll('input[type="url"]');
+  const whatsappInput = document.getElementById('config-whatsapp');
+  const instagramInput = document.getElementById('config-instagram');
+  const cloudNameInput = document.getElementById('config-cloudinary-cloudname');
+  const presetInput = document.getElementById('config-cloudinary-preset');
 
   const payload = {
-    whatsappUrl: inputs[0].value,
-    instagramUrl: inputs[1].value
+    whatsappUrl: whatsappInput ? whatsappInput.value.trim() : '',
+    instagramUrl: instagramInput ? instagramInput.value.trim() : '',
+    cloudinaryCloudName: cloudNameInput ? cloudNameInput.value.trim() : '',
+    cloudinaryUploadPreset: presetInput ? presetInput.value.trim() : ''
   };
 
   try {
@@ -595,6 +729,8 @@ async function submitConfiguracoes(event) {
     if (json.success) {
       showToast('Configurações salvas com sucesso!', 'success');
       loadAdminData();
+    } else {
+      showToast(json.message || 'Erro ao salvar configurações.', 'error');
     }
   } catch (err) {
     showToast('Erro ao salvar configurações.', 'error');

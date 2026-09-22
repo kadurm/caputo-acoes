@@ -101,11 +101,17 @@ function renderPageData(db) {
   const tabVideosContainer = document.querySelector('#tab-resultados .space-y-6');
   if (tabVideosContainer && db.videos && db.videos.length > 0) {
     tabVideosContainer.innerHTML = db.videos.map(v => {
-      const isMp4 = v.videoUrl && v.videoUrl.toLowerCase().includes('.mp4');
-      const mediaHtml = isMp4 ? `
+      const isDirectVideo = v.videoUrl && (
+        v.videoUrl.toLowerCase().includes('.mp4') ||
+        v.videoUrl.toLowerCase().includes('.webm') ||
+        v.videoUrl.toLowerCase().includes('.mov') ||
+        v.videoUrl.includes('cloudinary.com') ||
+        v.videoUrl.startsWith('data:video/')
+      );
+      const mediaHtml = isDirectVideo ? `
         <div class="aspect-[9/16] bg-black relative flex items-center justify-center">
             <video controls preload="metadata" playsinline class="w-full h-full object-cover">
-                <source src="${v.videoUrl}" type="video/mp4">
+                <source src="${v.videoUrl}">
                 Seu navegador não suporta a tag de vídeo.
             </video>
         </div>

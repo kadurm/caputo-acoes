@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const path = require('path');
+const fs = require('fs');
 const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const cloudinary = require('cloudinary').v2;
@@ -133,9 +134,55 @@ app.get('/api/auth/verify', authenticateToken, (req, res) => {
   });
 });
 
-// --- UPLOAD ENDPOINT ---
+// --- UPLOAD ENDPOINTS ---
 
-// POST /api/upload (Cloudinary com Fallback Local para Vídeos e Imagens)
+// GET /api/upload/sign - Obter credenciais de assinatura para upload direto no Cloudinary
+app.get('/api/upload/sign', authenticateToken, async (req, res) => {
+  try {
+    const db = await getAppData();
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME || (db.config && db.config.cloudinaryCloudName);
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+    const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET || (db.config && db.config.cloudinaryUploadPreset);
+
+    if (cloudName && apiSecret && apiKey) {
+      const timestamp = Math.round(new Date().getTime() / 1000);
+      const signature = cloudinary.utils.api_sign_request(
+        { timestamp, folder: 'caputo_acoes' },
+        apiSecret
+      );
+      return res.json({
+        success: true,
+        type: 'signed',
+        cloudName,
+        apiKey,
+        timestamp,
+        signature,
+        folder: 'caputo_acoes'
+      });
+    }
+
+    if (cloudName && uploadPreset) {
+      return res.json({
+        success: true,
+        type: 'unsigned',
+        cloudName,
+        uploadPreset
+      });
+    }
+
+    return res.json({
+      success: false,
+      configured: false,
+      message: 'Cloudinary não configurado.'
+    });
+  } catch (err) {
+    console.error('Erro ao gerar assinatura Cloudinary:', err);
+    res.status(500).json({ success: false, message: 'Erro interno ao gerar assinatura de upload.' });
+  }
+});
+
+// POST /api/upload (Upload de arquivos e vídeos)
 app.post('/api/upload', authenticateToken, upload.single('file'), async (req, res) => {
   try {
     if (!req.file && !req.body.base64) {
@@ -190,7 +237,7 @@ app.post('/api/upload', authenticateToken, upload.single('file'), async (req, re
   }
 });
 
-// Helper para salvar vídeos localmente
+// Helper para salvar vídeos localmente (com fallback base64 em sistemas somente leitura)
 function saveVideoLocally(file, res) {
   try {
     const uploadDir = path.join(__dirname, '..', 'Sorteios', 'Finalizadas');
@@ -207,7 +254,16 @@ function saveVideoLocally(file, res) {
       message: 'Vídeo enviado e salvo com sucesso!'
     });
   } catch (err) {
-    console.error('Erro ao salvar vídeo no disco:', err);
+    console.warn('Gravação em disco não permitida (ambiente serverless/somente leitura). Usando fallback em memória/data URL:', err.message);
+    if (file && file.buffer) {
+      const mime = file.mimetype || 'video/mp4';
+      const dataUrl = `data:${mime};base64,${file.buffer.toString('base64')}`;
+      return res.json({
+        success: true,
+        url: dataUrl,
+        message: 'Vídeo processado com sucesso.'
+      });
+    }
     return res.status(500).json({ success: false, message: 'Erro ao gravar vídeo no servidor.' });
   }
 }
@@ -386,8 +442,11 @@ app.put('/api/config', authenticateToken, async (req, res) => {
   try {
     const db = await getAppData();
     db.config = {
-      whatsappUrl: req.body.whatsappUrl || (db.config && db.config.whatsappUrl) || '',
-      instagramUrl: req.body.instagramUrl || (db.config && db.config.instagramUrl) || ''
+      ...(db.config || {}),
+      whatsappUrl: req.body.whatsappUrl !== undefined ? req.body.whatsappUrl : (db.config && db.config.whatsappUrl) || '',
+      instagramUrl: req.body.instagramUrl !== undefined ? req.body.instagramUrl : (db.config && db.config.instagramUrl) || '',
+      cloudinaryCloudName: req.body.cloudinaryCloudName !== undefined ? req.body.cloudinaryCloudName.trim() : (db.config && db.config.cloudinaryCloudName) || '',
+      cloudinaryUploadPreset: req.body.cloudinaryUploadPreset !== undefined ? req.body.cloudinaryUploadPreset.trim() : (db.config && db.config.cloudinaryUploadPreset) || ''
     };
     await saveAppData(db);
     res.json({ success: true, message: 'Configurações salvas com sucesso!', data: db.config });

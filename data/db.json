@@ -144,6 +144,41 @@
   ],
   "videos": [
     {
+      "id": "video_7",
+      "titulo": "Entrega em Belo Horizonte - Aline",
+      "data": "15/06/2026",
+      "videoUrl": "Sorteios/Finalizadas/Aline%20belo%20horizonte%2015062026.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=800&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "video_6",
+      "titulo": "iPhone Pro Max - Karine (Prados - MG)",
+      "data": "26/05/2026",
+      "videoUrl": "Sorteios/Finalizadas/Karine%20-%20PRADOS%20-%20MG.%202605%2017%20pro%20max.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "video_3",
+      "titulo": "Entrega 12 Salários Mínimos - Renata (São João del Rei - MG)",
+      "data": "13/05/2026",
+      "videoUrl": "Sorteios/Finalizadas/1305%20-%20Renata%20-%20S%C3%83O%20JO%C3%83O%20DEL%20REI%20-%20MG%20.%2012%20sal%C3%A1rios%20m%C3%ADnimos.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=800&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "video_5",
+      "titulo": "Bilhete Premiado iPhone - Isabela (São João del Rei - MG)",
+      "data": "12/05/2026",
+      "videoUrl": "Sorteios/Finalizadas/1205%20-%20Isabela%20%2C%20SAO%20JO%C3%83O%20DEL%20REI%20bilhete%20premiado%20iPhone.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "video_4",
+      "titulo": "Bilhete Premiado iPhone - Raphaela (Divinópolis - MG)",
+      "data": "06/04/2026",
+      "videoUrl": "Sorteios/Finalizadas/0604%20-%20raphaela%20-%20Divin%C3%B3polis%20-%20MG%20.%20Bilhete%20premiado%20iPhone.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80"
+    },
+    {
       "id": "video_1",
       "titulo": "Entrega Volkswagen Jetta 2.0 - June (Contagem - MG)",
       "data": "03/04/2026",
@@ -156,41 +191,6 @@
       "data": "21/03/2026",
       "videoUrl": "Sorteios/Finalizadas/2103%20Vit%C3%B3ria%20-%20S%C3%A3o%20Jo%C3%A3o%20del%20rei%20-%20MG%20.%20Honda%20Pcx.mp4",
       "thumbnailUrl": "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800&auto=format&fit=crop&q=80"
-    },
-    {
-      "id": "video_3",
-      "titulo": "Entrega 12 Salários Mínimos - Renata (São João del Rei - MG)",
-      "data": "13/05/2026",
-      "videoUrl": "Sorteios/Finalizadas/1305%20-%20Renata%20-%20S%C3%83O%20JO%C3%83O%20DEL%20REI%20-%20MG%20.%2012%20sal%C3%A1rios%20m%C3%ADnimos.mp4",
-      "thumbnailUrl": "https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=800&auto=format&fit=crop&q=80"
-    },
-    {
-      "id": "video_4",
-      "titulo": "Bilhete Premiado iPhone - Raphaela (Divinópolis - MG)",
-      "data": "06/04/2026",
-      "videoUrl": "Sorteios/Finalizadas/0604%20-%20raphaela%20-%20Divin%C3%B3polis%20-%20MG%20.%20Bilhete%20premiado%20iPhone.mp4",
-      "thumbnailUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80"
-    },
-    {
-      "id": "video_5",
-      "titulo": "Bilhete Premiado iPhone - Isabela (São João del Rei - MG)",
-      "data": "12/05/2026",
-      "videoUrl": "Sorteios/Finalizadas/1205%20-%20Isabela%20%2C%20SAO%20JO%C3%83O%20DEL%20REI%20bilhete%20premiado%20iPhone.mp4",
-      "thumbnailUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80"
-    },
-    {
-      "id": "video_6",
-      "titulo": "iPhone Pro Max - Karine (Prados - MG)",
-      "data": "26/05/2026",
-      "videoUrl": "Sorteios/Finalizadas/Karine%20-%20PRADOS%20-%20MG.%202605%2017%20pro%20max.mp4",
-      "thumbnailUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80"
-    },
-    {
-      "id": "video_7",
-      "titulo": "Entrega em Belo Horizonte - Aline",
-      "data": "15/06/2026",
-      "videoUrl": "Sorteios/Finalizadas/Aline%20belo%20horizonte%2015062026.mp4",
-      "thumbnailUrl": "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=800&auto=format&fit=crop&q=80"
     },
     {
       "id": "video_8",

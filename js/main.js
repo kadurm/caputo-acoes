@@ -97,10 +97,11 @@ function renderPageData(db) {
     `).join('');
   }
 
-  // 4. Render Vídeos / Comprovações
+  // 4. Render Vídeos / Comprovações (Ordem cronológica: mais novos no topo)
   const tabVideosContainer = document.querySelector('#tab-resultados .space-y-6');
   if (tabVideosContainer && db.videos && db.videos.length > 0) {
-    tabVideosContainer.innerHTML = db.videos.map(v => {
+    const sortedVideos = sortVideosChronological(db.videos);
+    tabVideosContainer.innerHTML = sortedVideos.map(v => {
       const isDirectVideo = v.videoUrl && (
         v.videoUrl.toLowerCase().includes('.mp4') ||
         v.videoUrl.toLowerCase().includes('.webm') ||
@@ -161,4 +162,31 @@ function renderPageData(db) {
       instagramBtn.href = db.config.instagramUrl;
     }
   }
+}
+
+// Helper para converter data BR (DD/MM/YYYY) para timestamp
+function parseDateBR(dateStr) {
+  if (!dateStr) return 0;
+  const match = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (match) {
+    const day = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10) - 1;
+    const year = parseInt(match[3], 10);
+    return new Date(year, month, day).getTime();
+  }
+  const timestamp = Date.parse(dateStr);
+  return isNaN(timestamp) ? 0 : timestamp;
+}
+
+// Ordenar vídeos por ordem cronológica (mais novos no topo)
+function sortVideosChronological(videos) {
+  if (!Array.isArray(videos)) return [];
+  return [...videos].sort((a, b) => {
+    const timeA = parseDateBR(a.data);
+    const timeB = parseDateBR(b.data);
+    if (timeB !== timeA) return timeB - timeA;
+    const idA = parseInt((a.id || '').replace(/\D/g, ''), 10) || 0;
+    const idB = parseInt((b.id || '').replace(/\D/g, ''), 10) || 0;
+    return idB - idA;
+  });
 }

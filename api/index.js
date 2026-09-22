@@ -65,6 +65,9 @@ const upload = multer({
 app.get('/api/public/data', async (req, res) => {
   try {
     const db = await getAppData();
+    if (db && db.videos) {
+      db.videos = sortVideosChronological(db.videos);
+    }
     res.json({
       success: true,
       data: db
@@ -390,7 +393,8 @@ app.delete('/api/ganhadores/:id', authenticateToken, async (req, res) => {
 app.get('/api/videos', authenticateToken, async (req, res) => {
   try {
     const db = await getAppData();
-    res.json({ success: true, data: db.videos || [] });
+    const sorted = sortVideosChronological(db.videos || []);
+    res.json({ success: true, data: sorted });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Erro ao buscar vídeos.' });
   }
@@ -410,6 +414,7 @@ app.post('/api/videos', authenticateToken, async (req, res) => {
     };
 
     db.videos.unshift(novoVideo);
+    db.videos = sortVideosChronological(db.videos);
     await saveAppData(db);
     res.json({ success: true, message: 'Vídeo adicionado com sucesso!', data: novoVideo });
   } catch (err) {
@@ -470,6 +475,33 @@ if (require.main === module) {
     console.log(`\n🚀 Servidor Caputo Ações rodando em: http://localhost:${PORT}`);
     console.log(`📱 Landing Page: http://localhost:${PORT}/index.html`);
     console.log(`🔒 Painel Admin: http://localhost:${PORT}/admin\n`);
+  });
+}
+
+// Helper para converter data BR (DD/MM/YYYY) para timestamp
+function parseDateBR(dateStr) {
+  if (!dateStr) return 0;
+  const match = String(dateStr).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (match) {
+    const day = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10) - 1;
+    const year = parseInt(match[3], 10);
+    return new Date(year, month, day).getTime();
+  }
+  const timestamp = Date.parse(dateStr);
+  return isNaN(timestamp) ? 0 : timestamp;
+}
+
+// Helper para ordenar vídeos por ordem cronológica decrescente (mais novos no topo)
+function sortVideosChronological(videos) {
+  if (!Array.isArray(videos)) return [];
+  return [...videos].sort((a, b) => {
+    const timeA = parseDateBR(a.data);
+    const timeB = parseDateBR(b.data);
+    if (timeB !== timeA) return timeB - timeA;
+    const idA = parseInt(String(a.id || '').replace(/\D/g, ''), 10) || 0;
+    const idB = parseInt(String(b.id || '').replace(/\D/g, ''), 10) || 0;
+    return idB - idA;
   });
 }
 

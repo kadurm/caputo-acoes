@@ -100,33 +100,7 @@ function renderPageData(db) {
     }).join('');
   }
 
-  // 3. Render Ganhadores
-  const tabGanhadoresContainer = document.querySelector('#tab-ganhadores .space-y-4');
-  if (tabGanhadoresContainer && db.ganhadores && db.ganhadores.length > 0) {
-    tabGanhadoresContainer.innerHTML = db.ganhadores.map(g => `
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden relative">
-          <div class="absolute top-0 right-0 bg-brand-gold text-white text-xs font-bold px-3 py-1 rounded-bl-xl z-10 flex items-center gap-1">
-              <i class="ph-fill ph-star"></i> Entregue
-          </div>
-          <img src="${g.imagemUrl}" alt="${g.nome}" class="w-full h-48 object-cover">
-          <div class="p-4">
-              <h4 class="font-bold text-lg text-gray-900">${g.nome} ${g.cidade ? `<span class="text-xs text-gray-500 font-medium">(${g.cidade})</span>` : ''}</h4>
-              <p class="text-sm text-gray-600">Ganhador(a) da <span class="font-semibold text-gray-900">${g.premio}</span></p>
-              
-              <div class="mt-3 bg-gray-50 border border-gray-200 rounded-lg p-3 flex justify-between items-center">
-                  <div>
-                      <p class="text-xs text-gray-500 uppercase font-semibold">Bilhete Sorteado</p>
-                      <p class="font-mono text-xl font-bold text-brand-action">${g.bilhete}</p>
-                  </div>
-                  <div class="text-right">
-                      <p class="text-xs text-gray-500 uppercase font-semibold">Data</p>
-                      <p class="text-sm font-medium text-gray-800">${g.data}</p>
-                  </div>
-              </div>
-          </div>
-      </div>
-    `).join('');
-  }
+
 
   // 4. Render Vídeos / Comprovações (Ordem cronológica: mais novos no topo)
   const tabVideosContainer = document.querySelector('#tab-resultados .space-y-6');

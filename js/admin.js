@@ -142,8 +142,9 @@ function renderAdminDashboard(db) {
   const statAcessos = document.getElementById('stat-acessos-hoje') || document.querySelector('#view-dashboard .grid > div:nth-child(2) p.text-3xl');
   if (statAcessos) statAcessos.textContent = Number(todayViews).toLocaleString('pt-BR');
 
-  const statGanhadores = document.getElementById('stat-premios-entregues') || document.querySelector('#view-dashboard .grid > div:nth-child(3) p.text-3xl');
-  if (statGanhadores) statGanhadores.textContent = totalGanhadores;
+  const totalVideos = db.videos ? db.videos.length : 0;
+  const statVideos = document.getElementById('stat-videos-entregas') || document.getElementById('stat-premios-entregues') || document.querySelector('#view-dashboard .grid > div:nth-child(3) p.text-3xl');
+  if (statVideos) statVideos.textContent = totalVideos;
 
   // Update Highlight Banner Card in Dashboard
   if (db.destaque && db.destaque.titulo) {

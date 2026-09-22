@@ -171,7 +171,7 @@
                 <i class="ph ph-target text-xl"></i> Gerenciar Ações
             </button>
             <button onclick="switchView('videos', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl font-medium transition-all">
-                <i class="ph ph-video-camera text-xl"></i> Comprovações
+                <i class="ph ph-trophy text-xl"></i> Resultados
             </button>
             <button onclick="switchView('configuracoes', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl font-medium transition-all">
                 <i class="ph ph-gear text-xl"></i> Configurações
@@ -238,11 +238,11 @@
                     </div>
                     <!-- Stat Card 3 -->
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-red-600 border border-red-100">
-                            <i class="ph-fill ph-video-camera text-2xl"></i>
+                        <div class="w-14 h-14 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-600 border border-yellow-100">
+                            <i class="ph-fill ph-trophy text-2xl"></i>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500 font-medium">Vídeos de Entregas</p>
+                            <p class="text-sm text-gray-500 font-medium">Resultados</p>
                             <p id="stat-videos-entregas" class="text-3xl font-bold text-gray-900">0</p>
                         </div>
                     </div>
@@ -356,11 +356,11 @@
             <div id="view-videos" class="view-section hidden">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                     <div>
-                        <h2 class="text-2xl font-bold text-gray-900">Vídeos de Comprovação</h2>
-                        <p class="text-gray-500 text-sm mt-1">Adicione links do YouTube com as entregas de prêmios.</p>
+                        <h2 class="text-2xl font-bold text-gray-900">Resultados</h2>
+                        <p class="text-gray-500 text-sm mt-1">Gerencie os vídeos e entregas de prêmios aos ganhadores.</p>
                     </div>
-                    <button onclick="openModal('modal-video')" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md flex items-center gap-2 transition-transform active:scale-95">
-                        <i class="ph-bold ph-youtube-logo text-xl"></i> Adicionar Vídeo
+                    <button onclick="openModal('modal-video')" class="bg-brand-dark hover:bg-black text-white px-5 py-2.5 rounded-xl font-bold shadow-md flex items-center gap-2 transition-transform active:scale-95">
+                        <i class="ph-bold ph-trophy text-xl"></i> Novo Resultado
                     </button>
                 </div>
 
@@ -501,7 +501,7 @@
         <!-- MODAL: NOVO VIDEO -->
         <div id="modal-video" class="modal-content modal-body-scroll hidden bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-y-auto">
             <div class="sticky top-0 bg-white border-b border-gray-100 p-5 flex justify-between items-center z-10">
-                <h3 id="modal-video-title" class="text-xl font-bold text-gray-900 font-serif tracking-wide">Adicionar Comprovação (Vídeo)</h3>
+                <h3 id="modal-video-title" class="text-xl font-bold text-gray-900 font-serif tracking-wide">Adicionar Resultado (Vídeo)</h3>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 p-2 rounded-lg transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
             <form class="p-6 space-y-5" onsubmit="submitNovoVideo(event)">
@@ -620,9 +620,9 @@
                     const idInput = document.getElementById('video-id');
                     if (idInput) idInput.value = '';
                     const titleEl = document.getElementById('modal-video-title');
-                    if (titleEl) titleEl.textContent = 'Adicionar Comprovação (Vídeo)';
+                    if (titleEl) titleEl.textContent = 'Adicionar Resultado (Vídeo)';
                     const submitEl = document.getElementById('modal-video-submit');
-                    if (submitEl) submitEl.innerHTML = '<i class="ph-bold ph-check"></i> Salvar Vídeo';
+                    if (submitEl) submitEl.innerHTML = '<i class="ph-bold ph-check"></i> Salvar Resultado';
                     const infoEl = document.getElementById('video-upload-info');
                     if (infoEl) {
                         infoEl.innerHTML = '<i class="ph-bold ph-video-camera text-base text-red-600"></i> Nenhum arquivo selecionado ainda.';
@@ -714,6 +714,6 @@
         }
     </script>
     <!-- JAVASCRIPT ADMIN CONECTADO À API -->
-    <script src="/js/admin.js?v=20260922_03"></script>
+    <script src="/js/admin.js?v=20260922_04"></script>
 </body>
 </html>

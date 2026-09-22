@@ -662,7 +662,7 @@ function openEditVideo(id) {
   if (dataInput) dataInput.value = formatBRToDateInput(v.data);
 
   const titleEl = document.getElementById('modal-video-title');
-  if (titleEl) titleEl.textContent = 'Editar Comprovação (Vídeo)';
+  if (titleEl) titleEl.textContent = 'Editar Resultado (Vídeo)';
 
   const submitEl = document.getElementById('modal-video-submit');
   if (submitEl) submitEl.innerHTML = '<i class="ph-bold ph-check"></i> Salvar Alterações';

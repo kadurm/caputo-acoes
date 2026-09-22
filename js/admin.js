@@ -126,6 +126,8 @@ async function loadAdminData() {
 }
 
 function renderAdminDashboard(db) {
+  window.adminDataCache = db;
+
   // Update Stats Cards
   const totalAcoes = (db.acoes ? db.acoes.length : 0) + (db.destaque && db.destaque.titulo ? 1 : 0);
   const totalGanhadores = db.ganhadores ? db.ganhadores.length : 0;
@@ -155,7 +157,7 @@ function renderAdminDashboard(db) {
                 <p class="text-sm text-gray-600">R$ ${db.destaque.precoCota} a cota • <span class="font-medium text-brand-action">${db.destaque.porcentagemVendido}% Vendido</span></p>
             </div>
         </div>
-        <button onclick="switchView('acoes', document.querySelectorAll('.nav-btn')[1])" class="w-full sm:w-auto px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+        <button onclick="openEditAcao('${db.destaque.id || 'destaque'}')" class="w-full sm:w-auto px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
             Editar Ação
         </button>
       `;
@@ -191,6 +193,7 @@ function renderAdminDashboard(db) {
             </td>
             <td class="p-4 text-right">
                 <div class="flex justify-end gap-2">
+                    <button onclick="openEditAcao('${db.destaque.id || 'destaque'}')" class="text-gray-500 hover:text-brand-dark bg-white border border-gray-200 hover:bg-gray-100 p-2 rounded-lg transition-colors" title="Editar"><i class="ph-bold ph-pencil-simple text-lg"></i></button>
                     <button onclick="deleteAcaoItem('${db.destaque.id}')" class="text-gray-400 hover:text-red-600 bg-white border border-gray-200 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Encerrar/Excluir"><i class="ph ph-trash text-lg"></i></button>
                 </div>
             </td>
@@ -221,6 +224,7 @@ function renderAdminDashboard(db) {
             </td>
             <td class="p-4 text-right">
                 <div class="flex justify-end gap-2">
+                    <button onclick="openEditAcao('${acao.id}')" class="text-gray-500 hover:text-brand-dark bg-white border border-gray-200 hover:bg-gray-100 p-2 rounded-lg transition-colors" title="Editar"><i class="ph-bold ph-pencil-simple text-lg"></i></button>
                     <button onclick="deleteAcaoItem('${acao.id}')" class="text-gray-400 hover:text-red-600 bg-white border border-gray-200 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Encerrar/Excluir"><i class="ph ph-trash text-lg"></i></button>
                 </div>
             </td>
@@ -237,7 +241,8 @@ function renderAdminDashboard(db) {
     ganhadoresGrid.innerHTML = db.ganhadores.map(g => `
       <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden relative group">
           <div class="absolute top-2 right-2 flex gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button onclick="deleteGanhadorItem('${g.id}')" class="p-2 bg-white/90 backdrop-blur text-red-500 hover:text-red-700 rounded-lg shadow-sm"><i class="ph-bold ph-trash"></i></button>
+              <button onclick="openEditGanhador('${g.id}')" class="p-2 bg-white/90 backdrop-blur text-gray-700 hover:text-brand-dark rounded-lg shadow-sm" title="Editar"><i class="ph-bold ph-pencil-simple"></i></button>
+              <button onclick="deleteGanhadorItem('${g.id}')" class="p-2 bg-white/90 backdrop-blur text-red-500 hover:text-red-700 rounded-lg shadow-sm" title="Excluir"><i class="ph-bold ph-trash"></i></button>
           </div>
           
           <img src="${g.imagemUrl}" class="w-full h-48 object-cover">
@@ -295,7 +300,8 @@ function renderAdminDashboard(db) {
               <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
                   <span class="text-xs font-medium text-gray-500">${v.data}</span>
                   <div class="flex gap-2">
-                      <button onclick="deleteVideoItem('${v.id}')" class="text-gray-400 hover:text-red-600 p-1 rounded-md transition-colors"><i class="ph-bold ph-trash text-lg"></i></button>
+                      <button onclick="openEditVideo('${v.id}')" class="text-gray-500 hover:text-brand-dark p-1 rounded-md transition-colors" title="Editar"><i class="ph-bold ph-pencil-simple text-lg"></i></button>
+                      <button onclick="deleteVideoItem('${v.id}')" class="text-gray-400 hover:text-red-600 p-1 rounded-md transition-colors" title="Excluir"><i class="ph-bold ph-trash text-lg"></i></button>
                   </div>
               </div>
           </div>
@@ -517,23 +523,194 @@ async function handleUploadFallback(file, formKey, sizeMB, infoEl, updateProgres
   }
 }
 
-// API CRUD Call: Create Nova Ação
+// Helper para converter data BR (DD/MM/YYYY) para input date (YYYY-MM-DD)
+function formatBRToDateInput(dateBR) {
+  if (!dateBR) return '';
+  const parts = dateBR.split('/');
+  if (parts.length === 3) {
+    const day = parts[0].padStart(2, '0');
+    const month = parts[1].padStart(2, '0');
+    const year = parts[2];
+    return `${year}-${month}-${day}`;
+  }
+  return '';
+}
+
+// Helper para converter input date (YYYY-MM-DD) para data BR (DD/MM/YYYY)
+function formatDateInputToBR(dateInputVal) {
+  if (!dateInputVal) return getTodayBR();
+  const parts = dateInputVal.split('-');
+  if (parts.length === 3) {
+    const year = parts[0];
+    const month = parts[1];
+    const day = parts[2];
+    return `${day}/${month}/${year}`;
+  }
+  return dateInputVal;
+}
+
+let currentEditState = {
+  acao: null,
+  ganhador: null,
+  video: null
+};
+
+// Funções para Abrir Modais em Modo de Edição
+function openEditAcao(id) {
+  if (!window.adminDataCache) return;
+  const db = window.adminDataCache;
+  let acao = null;
+  let localExibicao = 'Aba: Ativas';
+
+  if (db.destaque && (db.destaque.id === id || id === 'destaque')) {
+    acao = db.destaque;
+    localExibicao = 'Destaque Principal (Banner Topo)';
+  } else if (db.acoes) {
+    acao = db.acoes.find(a => a.id === id);
+    if (acao) localExibicao = acao.localExibicao || 'Aba: Ativas';
+  }
+  if (!acao && db.encerradas) {
+    acao = db.encerradas.find(e => e.id === id);
+    if (acao) localExibicao = 'Aba: Encerradas';
+  }
+
+  if (!acao) {
+    showToast('Ação não encontrada.', 'error');
+    return;
+  }
+
+  currentEditState.acao = acao;
+  openModal('modal-acao', true);
+
+  const idInput = document.getElementById('acao-id');
+  if (idInput) idInput.value = acao.id || id;
+  const tituloInput = document.getElementById('acao-titulo');
+  if (tituloInput) tituloInput.value = acao.titulo || '';
+  const precoInput = document.getElementById('acao-preco');
+  if (precoInput) precoInput.value = acao.precoCota || '';
+  const localSelect = document.getElementById('acao-local');
+  if (localSelect) localSelect.value = localExibicao;
+  const porcentagemInput = document.getElementById('acao-porcentagem');
+  if (porcentagemInput) porcentagemInput.value = acao.porcentagemVendido || 0;
+  const checkoutInput = document.getElementById('acao-checkout');
+  if (checkoutInput) checkoutInput.value = acao.linkCheckout || '';
+
+  const titleEl = document.getElementById('modal-acao-title');
+  if (titleEl) titleEl.textContent = 'Editar Ação';
+
+  const submitEl = document.getElementById('modal-acao-submit');
+  if (submitEl) submitEl.innerHTML = '<i class="ph-bold ph-check"></i> Salvar Alterações';
+
+  const fileText = document.getElementById('acao-file-text');
+  if (fileText) fileText.textContent = acao.imagemUrl ? 'Imagem atual mantida (clique para trocar)' : 'Clique para selecionar imagem';
+}
+
+function openEditGanhador(id) {
+  if (!window.adminDataCache || !window.adminDataCache.ganhadores) return;
+  const g = window.adminDataCache.ganhadores.find(item => item.id === id);
+  if (!g) {
+    showToast('Ganhador não encontrado.', 'error');
+    return;
+  }
+
+  currentEditState.ganhador = g;
+  openModal('modal-ganhador', true);
+
+  const idInput = document.getElementById('ganhador-id');
+  if (idInput) idInput.value = g.id;
+  const nomeInput = document.getElementById('ganhador-nome');
+  if (nomeInput) nomeInput.value = g.nome || '';
+  const premioInput = document.getElementById('ganhador-premio');
+  if (premioInput) premioInput.value = g.premio || '';
+  const bilheteInput = document.getElementById('ganhador-bilhete');
+  if (bilheteInput) bilheteInput.value = g.bilhete || '';
+  const dataInput = document.getElementById('ganhador-data');
+  if (dataInput) dataInput.value = formatBRToDateInput(g.data);
+
+  const titleEl = document.getElementById('modal-ganhador-title');
+  if (titleEl) titleEl.textContent = 'Editar Ganhador';
+
+  const submitEl = document.getElementById('modal-ganhador-submit');
+  if (submitEl) submitEl.innerHTML = '<i class="ph-bold ph-check"></i> Salvar Alterações';
+
+  const infoEl = document.getElementById('ganhador-foto-info');
+  if (infoEl) {
+    infoEl.textContent = g.imagemUrl ? 'Foto atual mantida. Selecione outro arquivo se desejar trocar.' : '';
+    infoEl.classList.remove('hidden');
+  }
+}
+
+function openEditVideo(id) {
+  if (!window.adminDataCache || !window.adminDataCache.videos) return;
+  const v = window.adminDataCache.videos.find(item => item.id === id);
+  if (!v) {
+    showToast('Vídeo não encontrado.', 'error');
+    return;
+  }
+
+  currentEditState.video = v;
+  openModal('modal-video', true);
+
+  const idInput = document.getElementById('video-id');
+  if (idInput) idInput.value = v.id;
+  const tituloInput = document.getElementById('video-titulo');
+  if (tituloInput) tituloInput.value = v.titulo || '';
+  const urlInput = document.getElementById('video-url-input');
+  if (urlInput) urlInput.value = v.videoUrl || '';
+  const dataInput = document.getElementById('video-data');
+  if (dataInput) dataInput.value = formatBRToDateInput(v.data);
+
+  const titleEl = document.getElementById('modal-video-title');
+  if (titleEl) titleEl.textContent = 'Editar Comprovação (Vídeo)';
+
+  const submitEl = document.getElementById('modal-video-submit');
+  if (submitEl) submitEl.innerHTML = '<i class="ph-bold ph-check"></i> Salvar Alterações';
+
+  const infoEl = document.getElementById('video-upload-info');
+  if (infoEl) {
+    infoEl.innerHTML = `<i class="ph-fill ph-check-circle text-green-600 text-base"></i> Vídeo atual mantido. Selecione outro arquivo se desejar substituir.`;
+    infoEl.className = "mt-2 text-xs text-green-700 flex items-center gap-1.5 font-medium";
+  }
+}
+
+// API CRUD Call: Create / Edit Ação
 async function submitNovaAcao(event) {
   event.preventDefault();
-  const form = event.target;
-  
+  const idInput = document.getElementById('acao-id');
+  const id = idInput ? idInput.value.trim() : '';
+  const isEditing = !!id;
+
+  const existingItem = (isEditing && currentEditState.acao) ? currentEditState.acao : {};
+  const imagemUrl = uploadedImageUrls['modal-acao'] || existingItem.imagemUrl || 'https://placehold.co/400x500/111827/ca8a04?text=FOTO+AÇÃO';
+
+  const tituloEl = document.getElementById('acao-titulo') || event.target.querySelector('input[placeholder*="HILUX"]');
+  const precoEl = document.getElementById('acao-preco') || event.target.querySelector('input[placeholder="0,50"]');
+  const localEl = document.getElementById('acao-local') || event.target.querySelector('select');
+  const porcentagemEl = document.getElementById('acao-porcentagem');
+  const checkoutEl = document.getElementById('acao-checkout') || event.target.querySelector('input[type="url"]');
+
   const payload = {
-    titulo: form.querySelector('input[placeholder*="HILUX"]').value,
-    precoCota: form.querySelector('input[placeholder="0,50"]').value,
-    localExibicao: form.querySelector('select').value,
-    linkCheckout: form.querySelector('input[type="url"]').value,
-    imagemUrl: uploadedImageUrls['modal-acao'] || 'https://placehold.co/400x500/111827/ca8a04?text=FOTO+AÇÃO',
-    porcentagemVendido: 0
+    titulo: tituloEl ? tituloEl.value.trim() : '',
+    precoCota: precoEl ? precoEl.value.trim() : '',
+    localExibicao: localEl ? localEl.value : 'Aba: Ativas',
+    porcentagemVendido: porcentagemEl ? (Number(porcentagemEl.value) || 0) : (existingItem.porcentagemVendido || 0),
+    linkCheckout: checkoutEl ? checkoutEl.value.trim() : '',
+    imagemUrl: imagemUrl
   };
 
+  const submitBtn = document.getElementById('modal-acao-submit') || event.target.querySelector('button[type="submit"]');
+  const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Salvar Ação';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-1"></i> Salvando...';
+  }
+
   try {
-    const res = await fetch('/api/acoes', {
-      method: 'POST',
+    const url = isEditing ? `/api/acoes/${encodeURIComponent(id)}` : '/api/acoes';
+    const method = isEditing ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method: method,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`
@@ -542,17 +719,23 @@ async function submitNovaAcao(event) {
     });
     const json = await res.json();
     if (json.success) {
-      showToast('Ação cadastrada com sucesso!', 'success');
+      showToast(isEditing ? 'Ação atualizada com sucesso!' : 'Ação cadastrada com sucesso!', 'success');
       closeModal();
-      form.reset();
+      event.target.reset();
       delete uploadedImageUrls['modal-acao'];
+      currentEditState.acao = null;
       loadAdminData();
     } else {
-      showToast(json.message || 'Erro ao cadastrar ação.', 'error');
+      showToast(json.message || 'Erro ao salvar ação.', 'error');
     }
   } catch (err) {
     console.error(err);
     showToast('Erro ao conectar com a API.', 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnText;
+    }
   }
 }
 
@@ -574,23 +757,42 @@ async function deleteAcaoItem(id) {
   }
 }
 
-// API CRUD Call: Create Ganhador
+// API CRUD Call: Create / Edit Ganhador
 async function submitNovoGanhador(event) {
   event.preventDefault();
-  const form = event.target;
-  const inputs = form.querySelectorAll('input');
+  const idInput = document.getElementById('ganhador-id');
+  const id = idInput ? idInput.value.trim() : '';
+  const isEditing = !!id;
+
+  const existingItem = (isEditing && currentEditState.ganhador) ? currentEditState.ganhador : {};
+  const imagemUrl = uploadedImageUrls['modal-ganhador'] || existingItem.imagemUrl || 'https://placehold.co/600x400/222/ca8a04?text=GANHADOR';
+
+  const nomeEl = document.getElementById('ganhador-nome');
+  const premioEl = document.getElementById('ganhador-premio');
+  const bilheteEl = document.getElementById('ganhador-bilhete');
+  const dataEl = document.getElementById('ganhador-data');
 
   const payload = {
-    nome: inputs[1].value,
-    premio: inputs[2].value,
-    bilhete: inputs[3].value,
-    data: inputs[4].value ? new Date(inputs[4].value).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR'),
-    imagemUrl: uploadedImageUrls['modal-ganhador'] || 'https://placehold.co/600x400/222/ca8a04?text=GANHADOR'
+    nome: nomeEl ? nomeEl.value.trim() : '',
+    premio: premioEl ? premioEl.value.trim() : '',
+    bilhete: bilheteEl ? bilheteEl.value.trim() : '',
+    data: dataEl && dataEl.value ? formatDateInputToBR(dataEl.value) : (existingItem.data || getTodayBR()),
+    imagemUrl: imagemUrl
   };
 
+  const submitBtn = document.getElementById('modal-ganhador-submit') || event.target.querySelector('button[type="submit"]');
+  const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Salvar Ganhador';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-1"></i> Salvando...';
+  }
+
   try {
-    const res = await fetch('/api/ganhadores', {
-      method: 'POST',
+    const url = isEditing ? `/api/ganhadores/${encodeURIComponent(id)}` : '/api/ganhadores';
+    const method = isEditing ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method: method,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`
@@ -599,14 +801,23 @@ async function submitNovoGanhador(event) {
     });
     const json = await res.json();
     if (json.success) {
-      showToast('Ganhador cadastrado com sucesso!', 'success');
+      showToast(isEditing ? 'Ganhador atualizado com sucesso!' : 'Ganhador cadastrado com sucesso!', 'success');
       closeModal();
-      form.reset();
+      event.target.reset();
       delete uploadedImageUrls['modal-ganhador'];
+      currentEditState.ganhador = null;
       loadAdminData();
+    } else {
+      showToast(json.message || 'Erro ao salvar ganhador.', 'error');
     }
   } catch (err) {
-    showToast('Erro ao registrar ganhador.', 'error');
+    console.error(err);
+    showToast('Erro ao salvar ganhador.', 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnText;
+    }
   }
 }
 
@@ -628,28 +839,34 @@ async function deleteGanhadorItem(id) {
   }
 }
 
-// API CRUD Call: Create Vídeo
+// API CRUD Call: Create / Edit Vídeo
 async function submitNovoVideo(event) {
   event.preventDefault();
-  const form = event.target;
-  const titulo = form.querySelector('#video-titulo').value.trim();
-  const dataInput = form.querySelector('#video-data').value;
-  const linkManual = form.querySelector('#video-url-input') ? form.querySelector('#video-url-input').value.trim() : '';
-  const finalVideoUrl = uploadedVideoUrls['modal-video'] || linkManual;
+  const idInput = document.getElementById('video-id');
+  const id = idInput ? idInput.value.trim() : '';
+  const isEditing = !!id;
+
+  const existingItem = (isEditing && currentEditState.video) ? currentEditState.video : {};
+  const tituloEl = document.getElementById('video-titulo');
+  const dataEl = document.getElementById('video-data');
+  const urlEl = document.getElementById('video-url-input');
+  
+  const linkManual = urlEl ? urlEl.value.trim() : '';
+  const finalVideoUrl = uploadedVideoUrls['modal-video'] || (linkManual || existingItem.videoUrl);
 
   if (!finalVideoUrl) {
-    showToast('Por favor, selecione um arquivo de vídeo para envio.', 'error');
+    showToast('Por favor, selecione um arquivo de vídeo ou informe um link.', 'error');
     return;
   }
 
   const payload = {
-    titulo: titulo,
+    titulo: tituloEl ? tituloEl.value.trim() : '',
     videoUrl: finalVideoUrl,
-    data: dataInput ? new Date(dataInput + 'T12:00:00').toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR'),
-    thumbnailUrl: uploadedImageUrls['modal-video'] || 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=800&auto=format&fit=crop&q=80'
+    data: dataEl && dataEl.value ? formatDateInputToBR(dataEl.value) : (existingItem.data || getTodayBR()),
+    thumbnailUrl: uploadedImageUrls['modal-video'] || existingItem.thumbnailUrl || 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=800&auto=format&fit=crop&q=80'
   };
 
-  const submitBtn = form.querySelector('button[type="submit"]');
+  const submitBtn = document.getElementById('modal-video-submit') || event.target.querySelector('button[type="submit"]');
   const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Salvar Vídeo';
   if (submitBtn) {
     submitBtn.disabled = true;
@@ -657,8 +874,11 @@ async function submitNovoVideo(event) {
   }
 
   try {
-    const res = await fetch('/api/videos', {
-      method: 'POST',
+    const url = isEditing ? `/api/videos/${encodeURIComponent(id)}` : '/api/videos';
+    const method = isEditing ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method: method,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`
@@ -667,11 +887,12 @@ async function submitNovoVideo(event) {
     });
     const json = await res.json();
     if (json.success) {
-      showToast('Vídeo adicionado com sucesso!', 'success');
+      showToast(isEditing ? 'Vídeo atualizado com sucesso!' : 'Vídeo adicionado com sucesso!', 'success');
       closeModal();
-      form.reset();
+      event.target.reset();
       delete uploadedVideoUrls['modal-video'];
       delete uploadedImageUrls['modal-video'];
+      currentEditState.video = null;
       const infoEl = document.getElementById('video-upload-info');
       if (infoEl) {
         infoEl.innerHTML = '<i class="ph-bold ph-video-camera text-base text-red-600"></i> Nenhum arquivo selecionado ainda.';
@@ -682,6 +903,7 @@ async function submitNovoVideo(event) {
       showToast(json.message || 'Erro ao salvar vídeo.', 'error');
     }
   } catch (err) {
+    console.error(err);
     showToast('Erro ao salvar vídeo.', 'error');
   } finally {
     if (submitBtn) {

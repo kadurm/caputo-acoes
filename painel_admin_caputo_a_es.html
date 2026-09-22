@@ -453,13 +453,14 @@
     <!-- MODAL OVERLAY BASE -->
     <div id="modal-overlay" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
         
-        <!-- MODAL: NOVA AÇÃO -->
+        <!-- MODAL: AÇÃO (CRIAR / EDITAR) -->
         <div id="modal-acao" class="modal-content hidden bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
             <div class="sticky top-0 bg-white border-b border-gray-100 p-5 flex justify-between items-center z-10">
-                <h3 class="text-xl font-bold text-gray-900 font-serif tracking-wide">Cadastrar Nova Ação</h3>
+                <h3 id="modal-acao-title" class="text-xl font-bold text-gray-900 font-serif tracking-wide">Cadastrar Nova Ação</h3>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 p-2 rounded-lg transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
             <form class="p-6 space-y-5" onsubmit="submitNovaAcao(event)">
+                <input type="hidden" id="acao-id" value="">
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Imagem / Flyer (Capa)</label>
                     <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:bg-gray-50 hover:border-gray-400 cursor-pointer transition-colors group">
@@ -467,8 +468,8 @@
                             <i class="ph-fill ph-image text-4xl text-gray-300 group-hover:text-gray-400 mx-auto transition-colors"></i>
                             <div class="flex text-sm text-gray-600 justify-center">
                                 <span class="relative font-bold text-brand-dark hover:underline">
-                                    <span>Clique para selecionar o arquivo</span>
-                                    <input type="file" class="sr-only" accept="image/*" onchange="handleFileUpload(this, 'modal-acao')">
+                                    <span id="acao-file-text">Clique para selecionar imagem</span>
+                                    <input type="file" id="acao-file-input" class="sr-only" accept="image/*" onchange="handleFileUpload(this, 'modal-acao')">
                                 </span>
                             </div>
                             <p class="text-xs text-gray-400">Proporção ideal: 4:5 (Vertical) • PNG ou JPG</p>
@@ -478,33 +479,38 @@
                 
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Título do Prêmio Principal</label>
-                    <input type="text" placeholder="Ex: NOVA HILUX 4x4 + R$ 20 MIL" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" required>
+                    <input type="text" id="acao-titulo" placeholder="Ex: NOVA HILUX 4x4 + R$ 20 MIL" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" required>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
                         <label class="block text-sm font-bold text-gray-800 mb-2">Valor da Cota (R$)</label>
-                        <input type="text" placeholder="0,50" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" required>
+                        <input type="text" id="acao-preco" placeholder="0,50" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" required>
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-gray-800 mb-2">Local de Exibição</label>
-                        <select class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900 bg-white">
-                            <option>Destaque Principal (Banner Topo)</option>
-                            <option>Aba: Ativas</option>
-                            <option>Aba: Encerradas</option>
+                        <select id="acao-local" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900 bg-white">
+                            <option value="Destaque Principal (Banner Topo)">Destaque Principal (Banner Topo)</option>
+                            <option value="Aba: Ativas">Aba: Ativas</option>
+                            <option value="Aba: Encerradas">Aba: Encerradas</option>
                         </select>
                     </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-800 mb-2">Porcentagem Vendida (%)</label>
+                    <input type="number" id="acao-porcentagem" min="0" max="100" placeholder="0" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" value="0">
                 </div>
                 
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Link do Checkout (Sistema de Rifa)</label>
-                    <input type="url" placeholder="https://link-da-plataforma-externa..." class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" required>
+                    <input type="url" id="acao-checkout" placeholder="https://link-da-plataforma-externa..." class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" required>
                     <p class="mt-2 text-xs text-gray-500">Link para onde o botão "Comprar Números" irá direcionar.</p>
                 </div>
                 
                 <div class="pt-4 mt-6 border-t border-gray-100 flex gap-3 justify-end">
                     <button type="button" onclick="closeModal()" class="px-5 py-3 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-bold transition-colors">Cancelar</button>
-                    <button type="submit" class="px-5 py-3 bg-brand-dark hover:bg-black text-white rounded-xl font-bold shadow-md transition-transform active:scale-95 flex items-center gap-2">
+                    <button type="submit" id="modal-acao-submit" class="px-5 py-3 bg-brand-dark hover:bg-black text-white rounded-xl font-bold shadow-md transition-transform active:scale-95 flex items-center gap-2">
                         <i class="ph-bold ph-check"></i> Salvar Ação
                     </button>
                 </div>
@@ -514,36 +520,38 @@
         <!-- MODAL: NOVO GANHADOR -->
         <div id="modal-ganhador" class="modal-content hidden bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div class="sticky top-0 bg-white border-b border-gray-100 p-5 flex justify-between items-center z-10">
-                <h3 class="text-xl font-bold text-gray-900 font-serif tracking-wide">Registrar Ganhador</h3>
+                <h3 id="modal-ganhador-title" class="text-xl font-bold text-gray-900 font-serif tracking-wide">Registrar Ganhador</h3>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 p-2 rounded-lg transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
             <form class="p-6 space-y-5" onsubmit="submitNovoGanhador(event)">
+                <input type="hidden" id="ganhador-id" value="">
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Foto da Entrega do Prêmio</label>
-                    <input type="file" accept="image/*" onchange="handleFileUpload(this, 'modal-ganhador')" class="w-full p-2 border border-gray-300 rounded-xl text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-gray-100 file:text-gray-800 hover:file:bg-gray-200 file:cursor-pointer cursor-pointer">
+                    <input type="file" id="ganhador-foto-input" accept="image/*" onchange="handleFileUpload(this, 'modal-ganhador')" class="w-full p-2 border border-gray-300 rounded-xl text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-gray-100 file:text-gray-800 hover:file:bg-gray-200 file:cursor-pointer cursor-pointer">
+                    <p id="ganhador-foto-info" class="mt-1.5 text-xs text-gray-500 hidden"></p>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Nome Completo do Ganhador</label>
-                    <input type="text" placeholder="Ex: Maria Oliveira" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" required>
+                    <input type="text" id="ganhador-nome" placeholder="Ex: Maria Oliveira" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" required>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Prêmio Recebido (Texto que aparece no Card)</label>
-                    <input type="text" placeholder="Ex: Honda XRE 300" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" required>
+                    <input type="text" id="ganhador-premio" placeholder="Ex: Honda XRE 300" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" required>
                 </div>
                 <div class="grid grid-cols-2 gap-5">
                     <div>
                         <label class="block text-sm font-bold text-gray-800 mb-2">Nº do Bilhete</label>
-                        <input type="text" placeholder="102.884" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900 font-mono" required>
+                        <input type="text" id="ganhador-bilhete" placeholder="102.884" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900 font-mono" required>
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-gray-800 mb-2">Data do Sorteio</label>
-                        <input type="date" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" required>
+                        <input type="date" id="ganhador-data" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" required>
                     </div>
                 </div>
                 
                 <div class="pt-4 mt-6 border-t border-gray-100 flex gap-3 justify-end">
                     <button type="button" onclick="closeModal()" class="px-5 py-3 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-bold transition-colors">Cancelar</button>
-                    <button type="submit" class="px-5 py-3 bg-brand-dark hover:bg-black text-white rounded-xl font-bold shadow-md transition-transform active:scale-95 flex items-center gap-2">
+                    <button type="submit" id="modal-ganhador-submit" class="px-5 py-3 bg-brand-dark hover:bg-black text-white rounded-xl font-bold shadow-md transition-transform active:scale-95 flex items-center gap-2">
                         <i class="ph-bold ph-check"></i> Salvar Ganhador
                     </button>
                 </div>
@@ -553,10 +561,11 @@
         <!-- MODAL: NOVO VIDEO -->
         <div id="modal-video" class="modal-content hidden bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div class="sticky top-0 bg-white border-b border-gray-100 p-5 flex justify-between items-center z-10">
-                <h3 class="text-xl font-bold text-gray-900 font-serif tracking-wide">Adicionar Comprovação (Vídeo)</h3>
+                <h3 id="modal-video-title" class="text-xl font-bold text-gray-900 font-serif tracking-wide">Adicionar Comprovação (Vídeo)</h3>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 p-2 rounded-lg transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
             <form class="p-6 space-y-5" onsubmit="submitNovoVideo(event)">
+                <input type="hidden" id="video-id" value="">
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Título do Vídeo</label>
                     <input type="text" id="video-titulo" placeholder="Ex: Entrega do Jetta 2.0 - June" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900 text-sm" required>
@@ -579,12 +588,12 @@
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Miniatura (Opcional)</label>
-                    <input type="file" accept="image/*" onchange="handleFileUpload(this, 'modal-video')" class="w-full p-2 border border-gray-300 rounded-xl text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-gray-100 file:text-gray-800 hover:file:bg-gray-200 file:cursor-pointer cursor-pointer">
+                    <input type="file" id="video-thumb-input" accept="image/*" onchange="handleFileUpload(this, 'modal-video')" class="w-full p-2 border border-gray-300 rounded-xl text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-gray-100 file:text-gray-800 hover:file:bg-gray-200 file:cursor-pointer cursor-pointer">
                     <p class="mt-2 text-xs text-gray-500">Se não anexar miniatura, o início do próprio vídeo será exibido.</p>
                 </div>
                 <div class="pt-4 mt-6 border-t border-gray-100 flex gap-3 justify-end">
                     <button type="button" onclick="closeModal()" class="px-5 py-3 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-bold transition-colors">Cancelar</button>
-                    <button type="submit" class="px-5 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold shadow-md transition-transform active:scale-95 flex items-center gap-2">
+                    <button type="submit" id="modal-video-submit" class="px-5 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold shadow-md transition-transform active:scale-95 flex items-center gap-2">
                         <i class="ph-bold ph-check"></i> Salvar Vídeo
                     </button>
                 </div>
@@ -643,7 +652,7 @@
         // Modal Logic
         const modalOverlay = document.getElementById('modal-overlay');
         
-        function openModal(modalId) {
+        function openModal(modalId, isEdit = false) {
             // Hide all modal contents first
             document.querySelectorAll('.modal-content').forEach(el => {
                 el.classList.add('hidden');
@@ -651,6 +660,49 @@
             });
             
             const targetModal = document.getElementById(modalId);
+            if (!targetModal) return;
+
+            if (!isEdit) {
+                const form = targetModal.querySelector('form');
+                if (form) form.reset();
+
+                if (modalId === 'modal-acao') {
+                    const idInput = document.getElementById('acao-id');
+                    if (idInput) idInput.value = '';
+                    const titleEl = document.getElementById('modal-acao-title');
+                    if (titleEl) titleEl.textContent = 'Cadastrar Nova Ação';
+                    const submitEl = document.getElementById('modal-acao-submit');
+                    if (submitEl) submitEl.innerHTML = '<i class="ph-bold ph-check"></i> Salvar Ação';
+                    const fileText = document.getElementById('acao-file-text');
+                    if (fileText) fileText.textContent = 'Clique para selecionar imagem';
+                    if (typeof uploadedImageUrls !== 'undefined') delete uploadedImageUrls['modal-acao'];
+                } else if (modalId === 'modal-ganhador') {
+                    const idInput = document.getElementById('ganhador-id');
+                    if (idInput) idInput.value = '';
+                    const titleEl = document.getElementById('modal-ganhador-title');
+                    if (titleEl) titleEl.textContent = 'Registrar Ganhador';
+                    const submitEl = document.getElementById('modal-ganhador-submit');
+                    if (submitEl) submitEl.innerHTML = '<i class="ph-bold ph-check"></i> Salvar Ganhador';
+                    const infoEl = document.getElementById('ganhador-foto-info');
+                    if (infoEl) { infoEl.textContent = ''; infoEl.classList.add('hidden'); }
+                    if (typeof uploadedImageUrls !== 'undefined') delete uploadedImageUrls['modal-ganhador'];
+                } else if (modalId === 'modal-video') {
+                    const idInput = document.getElementById('video-id');
+                    if (idInput) idInput.value = '';
+                    const titleEl = document.getElementById('modal-video-title');
+                    if (titleEl) titleEl.textContent = 'Adicionar Comprovação (Vídeo)';
+                    const submitEl = document.getElementById('modal-video-submit');
+                    if (submitEl) submitEl.innerHTML = '<i class="ph-bold ph-check"></i> Salvar Vídeo';
+                    const infoEl = document.getElementById('video-upload-info');
+                    if (infoEl) {
+                        infoEl.innerHTML = '<i class="ph-bold ph-video-camera text-base text-red-600"></i> Nenhum arquivo selecionado ainda.';
+                        infoEl.className = "mt-2 text-xs text-gray-500 flex items-center gap-1.5";
+                    }
+                    if (typeof uploadedVideoUrls !== 'undefined') delete uploadedVideoUrls['modal-video'];
+                    if (typeof uploadedImageUrls !== 'undefined') delete uploadedImageUrls['modal-video'];
+                }
+            }
+
             targetModal.classList.remove('hidden');
             targetModal.classList.add('modal-enter');
             

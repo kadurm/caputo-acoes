@@ -375,6 +375,106 @@ app.post('/api/acoes', authenticateToken, async (req, res) => {
   }
 });
 
+app.put('/api/acoes/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = await getAppData();
+    const id = req.params.id;
+    db.acoes = db.acoes || [];
+    db.encerradas = db.encerradas || [];
+    let currentItem = null;
+    let fromWhere = null;
+
+    if (db.destaque && (db.destaque.id === id || id === 'destaque')) {
+      currentItem = db.destaque;
+      fromWhere = 'destaque';
+    } else {
+      const acaoIdx = db.acoes.findIndex(a => a.id === id);
+      if (acaoIdx !== -1) {
+        currentItem = db.acoes[acaoIdx];
+        fromWhere = 'acoes';
+      } else {
+        const encIdx = db.encerradas.findIndex(e => e.id === id);
+        if (encIdx !== -1) {
+          currentItem = db.encerradas[encIdx];
+          fromWhere = 'encerradas';
+        }
+      }
+    }
+
+    if (!currentItem) {
+      return res.status(404).json({ success: false, message: 'Ação não encontrada.' });
+    }
+
+    const updatedItem = {
+      ...currentItem,
+      id: currentItem.id || id,
+      titulo: req.body.titulo !== undefined ? req.body.titulo : currentItem.titulo,
+      precoCota: req.body.precoCota !== undefined ? req.body.precoCota : currentItem.precoCota,
+      subtitulo: `Apenas R$ ${req.body.precoCota !== undefined ? req.body.precoCota : currentItem.precoCota} a cota. Sorteio pela Loteria Federal.`,
+      imagemUrl: req.body.imagemUrl || currentItem.imagemUrl,
+      porcentagemVendido: req.body.porcentagemVendido !== undefined ? Number(req.body.porcentagemVendido) : (currentItem.porcentagemVendido || 0),
+      localExibicao: req.body.localExibicao || currentItem.localExibicao || (fromWhere === 'destaque' ? 'Destaque Principal (Banner Topo)' : 'Aba: Ativas'),
+      linkCheckout: req.body.linkCheckout !== undefined ? req.body.linkCheckout : (currentItem.linkCheckout || 'https://wa.me/5500000000000')
+    };
+
+    const targetLocation = updatedItem.localExibicao;
+
+    // Remove from previous location
+    if (fromWhere === 'destaque') {
+      db.destaque = {};
+    } else if (fromWhere === 'acoes') {
+      db.acoes = db.acoes.filter(a => a.id !== id);
+    } else if (fromWhere === 'encerradas') {
+      db.encerradas = db.encerradas.filter(e => e.id !== id);
+    }
+
+    // Place into target location
+    if (targetLocation === 'Destaque Principal (Banner Topo)') {
+      if (db.destaque && db.destaque.titulo && db.destaque.id !== id) {
+        db.acoes.unshift({
+          ...db.destaque,
+          localExibicao: 'Aba: Ativas'
+        });
+      }
+      db.destaque = {
+        id: updatedItem.id,
+        titulo: updatedItem.titulo,
+        subtitulo: updatedItem.subtitulo,
+        precoCota: updatedItem.precoCota,
+        imagemUrl: updatedItem.imagemUrl,
+        statusBadge: updatedItem.statusBadge || 'Encerrando em breve!',
+        linkCheckout: updatedItem.linkCheckout,
+        porcentagemVendido: updatedItem.porcentagemVendido,
+        localExibicao: 'Destaque Principal (Banner Topo)'
+      };
+    } else if (targetLocation === 'Aba: Encerradas') {
+      db.encerradas.unshift({
+        id: updatedItem.id,
+        titulo: updatedItem.titulo,
+        imagemUrl: updatedItem.imagemUrl,
+        status: 'Finalizada'
+      });
+    } else {
+      db.acoes.unshift({
+        id: updatedItem.id,
+        titulo: updatedItem.titulo,
+        precoCota: updatedItem.precoCota,
+        imagemUrl: updatedItem.imagemUrl,
+        porcentagemVendido: updatedItem.porcentagemVendido,
+        localExibicao: 'Aba: Ativas',
+        linkCheckout: updatedItem.linkCheckout,
+        status: 'ativa'
+      });
+    }
+
+    await saveAppData(db);
+    res.json({ success: true, message: 'Ação atualizada com sucesso!', data: updatedItem });
+  } catch (err) {
+    console.error('Erro ao editar ação:', err);
+    res.status(500).json({ success: false, message: 'Erro ao atualizar ação.' });
+  }
+});
+
 app.delete('/api/acoes/:id', authenticateToken, async (req, res) => {
   try {
     const db = await getAppData();
@@ -423,6 +523,33 @@ app.post('/api/ganhadores', authenticateToken, async (req, res) => {
   }
 });
 
+app.put('/api/ganhadores/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = await getAppData();
+    const id = req.params.id;
+    db.ganhadores = db.ganhadores || [];
+    const idx = db.ganhadores.findIndex(g => g.id === id);
+    if (idx === -1) {
+      return res.status(404).json({ success: false, message: 'Ganhador não encontrado.' });
+    }
+
+    db.ganhadores[idx] = {
+      ...db.ganhadores[idx],
+      nome: req.body.nome !== undefined ? req.body.nome : db.ganhadores[idx].nome,
+      premio: req.body.premio !== undefined ? req.body.premio : db.ganhadores[idx].premio,
+      bilhete: req.body.bilhete !== undefined ? req.body.bilhete : db.ganhadores[idx].bilhete,
+      data: req.body.data !== undefined ? req.body.data : db.ganhadores[idx].data,
+      imagemUrl: req.body.imagemUrl || db.ganhadores[idx].imagemUrl
+    };
+
+    await saveAppData(db);
+    res.json({ success: true, message: 'Ganhador atualizado com sucesso!', data: db.ganhadores[idx] });
+  } catch (err) {
+    console.error('Erro ao editar ganhador:', err);
+    res.status(500).json({ success: false, message: 'Erro ao atualizar ganhador.' });
+  }
+});
+
 app.delete('/api/ganhadores/:id', authenticateToken, async (req, res) => {
   try {
     const db = await getAppData();
@@ -464,6 +591,33 @@ app.post('/api/videos', authenticateToken, async (req, res) => {
     res.json({ success: true, message: 'Vídeo adicionado com sucesso!', data: novoVideo });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Erro ao salvar vídeo.' });
+  }
+});
+
+app.put('/api/videos/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = await getAppData();
+    const id = req.params.id;
+    db.videos = db.videos || [];
+    const idx = db.videos.findIndex(v => v.id === id);
+    if (idx === -1) {
+      return res.status(404).json({ success: false, message: 'Vídeo não encontrado.' });
+    }
+
+    db.videos[idx] = {
+      ...db.videos[idx],
+      titulo: req.body.titulo !== undefined ? req.body.titulo : db.videos[idx].titulo,
+      data: req.body.data !== undefined ? req.body.data : db.videos[idx].data,
+      videoUrl: req.body.videoUrl || db.videos[idx].videoUrl,
+      thumbnailUrl: req.body.thumbnailUrl || db.videos[idx].thumbnailUrl
+    };
+
+    db.videos = sortVideosChronological(db.videos);
+    await saveAppData(db);
+    res.json({ success: true, message: 'Vídeo atualizado com sucesso!', data: db.videos[idx] });
+  } catch (err) {
+    console.error('Erro ao editar vídeo:', err);
+    res.status(500).json({ success: false, message: 'Erro ao atualizar vídeo.' });
   }
 });
 

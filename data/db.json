@@ -209,6 +209,8 @@
   ],
   "config": {
     "whatsappUrl": "https://wa.me/5500000000000",
-    "instagramUrl": "https://instagram.com/caputoacoes"
+    "instagramUrl": "https://instagram.com/caputoacoes",
+    "cloudinaryCloudName": "dxeju6d3e",
+    "cloudinaryUploadPreset": "caputo_videos"
   }
 }

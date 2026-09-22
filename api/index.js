@@ -645,13 +645,30 @@ app.get('/api/config', async (req, res) => {
 app.put('/api/config', authenticateToken, async (req, res) => {
   try {
     const db = await getAppData();
+    const newWhatsapp = req.body.whatsappUrl !== undefined ? req.body.whatsappUrl.trim() : (db.config && db.config.whatsappUrl) || '';
+
     db.config = {
       ...(db.config || {}),
-      whatsappUrl: req.body.whatsappUrl !== undefined ? req.body.whatsappUrl : (db.config && db.config.whatsappUrl) || '',
-      instagramUrl: req.body.instagramUrl !== undefined ? req.body.instagramUrl : (db.config && db.config.instagramUrl) || '',
+      whatsappUrl: newWhatsapp,
+      instagramUrl: req.body.instagramUrl !== undefined ? req.body.instagramUrl.trim() : (db.config && db.config.instagramUrl) || '',
       cloudinaryCloudName: req.body.cloudinaryCloudName !== undefined ? req.body.cloudinaryCloudName.trim() : (db.config && db.config.cloudinaryCloudName) || '',
       cloudinaryUploadPreset: req.body.cloudinaryUploadPreset !== undefined ? req.body.cloudinaryUploadPreset.trim() : (db.config && db.config.cloudinaryUploadPreset) || ''
     };
+
+    // Sincronizar WhatsApp nas ações que usam link padrão de suporte
+    if (newWhatsapp) {
+      if (db.destaque && (!db.destaque.linkCheckout || db.destaque.linkCheckout.includes('5500000000000') || db.destaque.linkCheckout.includes('wa.me'))) {
+        db.destaque.linkCheckout = newWhatsapp;
+      }
+      if (db.acoes && Array.isArray(db.acoes)) {
+        db.acoes.forEach(a => {
+          if (!a.linkCheckout || a.linkCheckout.includes('5500000000000') || a.linkCheckout.includes('wa.me')) {
+            a.linkCheckout = newWhatsapp;
+          }
+        });
+      }
+    }
+
     await saveAppData(db);
     res.json({ success: true, message: 'Configurações salvas com sucesso!', data: db.config });
   } catch (err) {

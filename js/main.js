@@ -25,9 +25,19 @@ async function fetchPublicData() {
 }
 
 function renderPageData(db) {
+  // WhatsApp definido para suporte e atendimento (mesmo número para compra de números)
+  const whatsappSuporte = (db.config && db.config.whatsappUrl && db.config.whatsappUrl.trim())
+    ? db.config.whatsappUrl.trim()
+    : 'https://wa.me/5500000000000';
+
   // 1. Render Destaque (Flyer Principal)
   if (db.destaque && db.destaque.titulo) {
     const destaqueSection = document.querySelector('main section:first-of-type');
+    // Em 'Comprar números' o botão redireciona para o número do WhatsApp definido para suporte
+    const linkComprar = (db.destaque.linkCheckout && !db.destaque.linkCheckout.includes('5500000000000'))
+      ? db.destaque.linkCheckout.trim()
+      : whatsappSuporte;
+
     if (destaqueSection) {
       destaqueSection.innerHTML = `
         <div class="relative w-full aspect-[4/5] rounded-2xl overflow-hidden shadow-lg border border-gray-200 bg-gray-900 group">
@@ -40,7 +50,7 @@ function renderPageData(db) {
                 <h3 class="text-white font-bold text-2xl leading-tight mb-1 shadow-black drop-shadow-md">${db.destaque.titulo}</h3>
                 <p class="text-gray-300 text-sm mb-4">${db.destaque.subtitulo || `Apenas R$ ${db.destaque.precoCota} a cota.`}</p>
                 
-                <a href="${db.destaque.linkCheckout || '#'}" target="_blank" class="w-full bg-brand-action hover:bg-green-500 text-white font-bold text-lg py-4 rounded-xl shadow-[0_4px_0_0_#14532d] active:shadow-[0_0px_0_0_#14532d] active:translate-y-1 transition-all flex items-center justify-center gap-2">
+                <a id="btn-comprar-destaque" href="${linkComprar}" target="_blank" class="w-full bg-brand-action hover:bg-green-500 text-white font-bold text-lg py-4 rounded-xl shadow-[0_4px_0_0_#14532d] active:shadow-[0_0px_0_0_#14532d] active:translate-y-1 transition-all flex items-center justify-center gap-2">
                     <i class="ph ph-shopping-cart text-2xl"></i>
                     COMPRAR NÚMEROS
                 </a>
@@ -48,12 +58,23 @@ function renderPageData(db) {
         </div>
       `;
     }
+  } else {
+    // Fallback: se não renderizar destaque via JS, atualizar o botão existente
+    const btnComprar = document.getElementById('btn-comprar-destaque');
+    if (btnComprar && whatsappSuporte) {
+      btnComprar.href = whatsappSuporte;
+    }
   }
 
   // 2. Render Ações Ativas
   const tabAtivasContainer = document.querySelector('#tab-ativas .space-y-4');
   if (tabAtivasContainer && db.acoes && db.acoes.length > 0) {
-    tabAtivasContainer.innerHTML = db.acoes.map(acao => `
+    tabAtivasContainer.innerHTML = db.acoes.map(acao => {
+      const linkAcao = (acao.linkCheckout && !acao.linkCheckout.includes('5500000000000'))
+        ? acao.linkCheckout.trim()
+        : whatsappSuporte;
+
+      return `
       <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <div class="flex p-3 gap-4">
               <div class="w-24 h-24 rounded-xl bg-gray-200 flex-shrink-0 overflow-hidden">
@@ -70,12 +91,13 @@ function renderPageData(db) {
               </div>
           </div>
           <div class="p-3 bg-gray-50 border-t border-gray-100">
-              <a href="${acao.linkCheckout || '#'}" target="_blank" class="w-full bg-brand-dark text-white font-bold py-2.5 rounded-lg text-sm shadow flex items-center justify-center gap-2">
+              <a href="${linkAcao}" target="_blank" class="w-full bg-brand-dark text-white font-bold py-2.5 rounded-lg text-sm shadow flex items-center justify-center gap-2">
                   PARTICIPAR AGORA <i class="ph-bold ph-arrow-right"></i>
               </a>
           </div>
       </div>
-    `).join('');
+    `;
+    }).join('');
   }
 
   // 3. Render Ganhadores

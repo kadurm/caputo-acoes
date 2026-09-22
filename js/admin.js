@@ -33,6 +33,8 @@ function showLoginScreen() {
   const loginOverlay = document.getElementById('login-screen');
   if (loginOverlay) {
     loginOverlay.classList.remove('hidden');
+    loginOverlay.classList.add('flex');
+    loginOverlay.style.setProperty('display', 'flex', 'important');
   }
 }
 
@@ -40,6 +42,8 @@ function hideLoginScreen() {
   const loginOverlay = document.getElementById('login-screen');
   if (loginOverlay) {
     loginOverlay.classList.add('hidden');
+    loginOverlay.classList.remove('flex');
+    loginOverlay.style.setProperty('display', 'none', 'important');
   }
 }
 
@@ -48,15 +52,25 @@ async function handleLoginSubmit(event) {
   const emailInput = document.getElementById('login-email');
   const passwordInput = document.getElementById('login-password');
   const errorBox = document.getElementById('login-error');
+  const submitBtn = event.target ? event.target.querySelector('button[type="submit"]') : null;
 
-  if (errorBox) errorBox.classList.add('hidden');
+  if (errorBox) {
+    errorBox.classList.add('hidden');
+    errorBox.textContent = '';
+  }
+
+  const originalBtnText = submitBtn ? submitBtn.innerHTML : 'ACESSAR PAINEL ADMIN';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-lg mr-2"></i> Verificando...';
+  }
 
   try {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email: emailInput.value,
+        email: emailInput.value.trim(),
         password: passwordInput.value
       })
     });
@@ -70,14 +84,23 @@ async function handleLoginSubmit(event) {
       loadAdminData();
     } else {
       if (errorBox) {
-        errorBox.textContent = json.message || 'Credenciais inválidas.';
+        errorBox.textContent = json.message || 'Credenciais inválidas. Verifique e-mail e senha.';
         errorBox.classList.remove('hidden');
       }
       showToast(json.message || 'Falha no login', 'error');
     }
   } catch (err) {
     console.error('Erro ao efetuar login:', err);
+    if (errorBox) {
+      errorBox.textContent = 'Erro de comunicação com o servidor.';
+      errorBox.classList.remove('hidden');
+    }
     showToast('Erro de conexão com o servidor.', 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnText;
+    }
   }
 }
 
@@ -232,6 +255,7 @@ function renderAdminDashboard(db) {
   // Render Grid: Vídeos
   const videosGrid = document.querySelector('#view-videos .grid');
   if (videosGrid && db.videos) {
+    videosGrid.innerHTML = db.videos.map(v => {
       const isMp4 = v.videoUrl && v.videoUrl.toLowerCase().includes('.mp4');
       const mediaHtml = isMp4 ? `
         <div class="aspect-[9/16] bg-black relative flex items-center justify-center">
@@ -261,7 +285,8 @@ function renderAdminDashboard(db) {
               </div>
           </div>
       </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
   // Populate Config Form

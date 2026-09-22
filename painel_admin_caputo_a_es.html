@@ -201,7 +201,7 @@
                         </div>
                         <div>
                             <p class="text-sm text-gray-500 font-medium">Ações Ativas</p>
-                            <p class="text-3xl font-bold text-gray-900">2</p>
+                            <p id="stat-acoes-ativas" class="text-3xl font-bold text-gray-900">0</p>
                         </div>
                     </div>
                     <!-- Stat Card 2 -->
@@ -211,7 +211,7 @@
                         </div>
                         <div>
                             <p class="text-sm text-gray-500 font-medium">Acessos Hoje</p>
-                            <p class="text-3xl font-bold text-gray-900">1.240</p>
+                            <p id="stat-acessos-hoje" class="text-3xl font-bold text-gray-900">0</p>
                         </div>
                     </div>
                     <!-- Stat Card 3 -->
@@ -221,7 +221,7 @@
                         </div>
                         <div>
                             <p class="text-sm text-gray-500 font-medium">Prêmios Entregues</p>
-                            <p class="text-3xl font-bold text-gray-900">12</p>
+                            <p id="stat-premios-entregues" class="text-3xl font-bold text-gray-900">0</p>
                         </div>
                     </div>
                 </div>
@@ -435,29 +435,6 @@
                                     <i class="ph-fill ph-instagram-logo text-xl text-pink-600"></i>
                                 </span>
                                 <input type="url" id="config-instagram" value="https://instagram.com/caputoacoes" class="flex-1 block w-full bg-white px-4 py-3 text-gray-900 outline-none sm:text-sm" required>
-                            </div>
-                        </div>
-
-                        <div class="pt-4 border-t border-gray-100">
-                            <h3 class="text-sm font-bold uppercase tracking-wider text-gray-500 border-b border-gray-100 pb-2 mb-4 flex items-center justify-between">
-                                <span>Upload de Vídeos Grandes (Cloudinary)</span>
-                                <span class="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">Grátis até 100MB</span>
-                            </h3>
-                            <p class="text-xs text-gray-500 mb-4 leading-relaxed">
-                                Para enviar vídeos grandes do celular/computador sem restrições do servidor da Vercel, conecte sua conta gratuita do Cloudinary (basta criar conta em <strong>cloudinary.com</strong> e ativar um <em>Upload Preset Unsigned</em>).
-                            </p>
-                            
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-800 mb-1">Cloud Name</label>
-                                    <input type="text" id="config-cloudinary-cloudname" placeholder="Ex: caputoacoes" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark">
-                                    <p class="text-[10px] text-gray-400 mt-1">Nome da nuvem no Cloudinary</p>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-800 mb-1">Upload Preset (Unsigned)</label>
-                                    <input type="text" id="config-cloudinary-preset" placeholder="Ex: caputo_videos" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark">
-                                    <p class="text-[10px] text-gray-400 mt-1">Upload preset não-assinado (Signing mode: Unsigned)</p>
-                                </div>
                             </div>
                         </div>
                     </div>

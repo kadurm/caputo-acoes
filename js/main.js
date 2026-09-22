@@ -1,6 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
   fetchPublicData();
+  recordPageView();
 });
+
+async function recordPageView() {
+  try {
+    await fetch('/api/analytics/pageview', { method: 'POST' });
+  } catch (err) {
+    // Falha silenciosa para analytics
+  }
+}
 
 async function fetchPublicData() {
   try {

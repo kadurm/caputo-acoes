@@ -65,6 +65,20 @@ const upload = multer({
 app.get('/api/public/data', async (req, res) => {
   try {
     const db = await getAppData();
+    const todayStr = getTodayBR();
+
+    db.analytics = db.analytics || {
+      today: todayStr,
+      todayViews: 0,
+      totalViews: 0,
+      history: {}
+    };
+
+    if (db.analytics.today !== todayStr) {
+      db.analytics.today = todayStr;
+      db.analytics.todayViews = 0;
+    }
+
     if (db && db.videos) {
       db.videos = sortVideosChronological(db.videos);
     }
@@ -75,6 +89,37 @@ app.get('/api/public/data', async (req, res) => {
   } catch (err) {
     console.error('Erro ao obter dados públicos:', err);
     res.status(500).json({ success: false, message: 'Erro ao carregar dados.' });
+  }
+});
+
+// POST /api/analytics/pageview - Registrar visualização da página principal
+app.post('/api/analytics/pageview', async (req, res) => {
+  try {
+    const db = await getAppData();
+    const todayStr = getTodayBR();
+
+    db.analytics = db.analytics || {
+      today: todayStr,
+      todayViews: 0,
+      totalViews: 0,
+      history: {}
+    };
+
+    if (db.analytics.today !== todayStr) {
+      db.analytics.today = todayStr;
+      db.analytics.todayViews = 0;
+    }
+
+    db.analytics.todayViews = (db.analytics.todayViews || 0) + 1;
+    db.analytics.totalViews = (db.analytics.totalViews || 0) + 1;
+    db.analytics.history = db.analytics.history || {};
+    db.analytics.history[todayStr] = db.analytics.todayViews;
+
+    await saveAppData(db);
+    res.json({ success: true, todayViews: db.analytics.todayViews, totalViews: db.analytics.totalViews });
+  } catch (err) {
+    console.error('Erro ao registrar pageview:', err);
+    res.status(500).json({ success: false, message: 'Erro ao registrar visualização.' });
   }
 });
 
@@ -503,6 +548,16 @@ function sortVideosChronological(videos) {
     const idB = parseInt(String(b.id || '').replace(/\D/g, ''), 10) || 0;
     return idB - idA;
   });
+}
+
+// Helper para obter a data de hoje no fuso horário do Brasil (DD/MM/YYYY)
+function getTodayBR() {
+  return new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }).format(new Date());
 }
 
 module.exports = app;

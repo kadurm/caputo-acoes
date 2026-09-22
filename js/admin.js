@@ -129,11 +129,18 @@ function renderAdminDashboard(db) {
   // Update Stats Cards
   const totalAcoes = (db.acoes ? db.acoes.length : 0) + (db.destaque && db.destaque.titulo ? 1 : 0);
   const totalGanhadores = db.ganhadores ? db.ganhadores.length : 0;
+  const todayStr = getTodayBR();
+  const todayViews = (db.analytics && db.analytics.today === todayStr && typeof db.analytics.todayViews === 'number')
+    ? db.analytics.todayViews
+    : 0;
   
-  const statAcoes = document.querySelector('#view-dashboard .grid > div:nth-child(1) p.text-3xl');
+  const statAcoes = document.getElementById('stat-acoes-ativas') || document.querySelector('#view-dashboard .grid > div:nth-child(1) p.text-3xl');
   if (statAcoes) statAcoes.textContent = totalAcoes;
 
-  const statGanhadores = document.querySelector('#view-dashboard .grid > div:nth-child(3) p.text-3xl');
+  const statAcessos = document.getElementById('stat-acessos-hoje') || document.querySelector('#view-dashboard .grid > div:nth-child(2) p.text-3xl');
+  if (statAcessos) statAcessos.textContent = Number(todayViews).toLocaleString('pt-BR');
+
+  const statGanhadores = document.getElementById('stat-premios-entregues') || document.querySelector('#view-dashboard .grid > div:nth-child(3) p.text-3xl');
   if (statGanhadores) statGanhadores.textContent = totalGanhadores;
 
   // Update Highlight Banner Card in Dashboard
@@ -712,10 +719,14 @@ async function submitConfiguracoes(event) {
 
   const payload = {
     whatsappUrl: whatsappInput ? whatsappInput.value.trim() : '',
-    instagramUrl: instagramInput ? instagramInput.value.trim() : '',
-    cloudinaryCloudName: cloudNameInput ? cloudNameInput.value.trim() : '',
-    cloudinaryUploadPreset: presetInput ? presetInput.value.trim() : ''
+    instagramUrl: instagramInput ? instagramInput.value.trim() : ''
   };
+  if (cloudNameInput && cloudNameInput.value) {
+    payload.cloudinaryCloudName = cloudNameInput.value.trim();
+  }
+  if (presetInput && presetInput.value) {
+    payload.cloudinaryUploadPreset = presetInput.value.trim();
+  }
 
   try {
     const res = await fetch('/api/config', {
@@ -763,4 +774,14 @@ function sortVideosChronological(videos) {
     const idB = parseInt((b.id || '').replace(/\D/g, ''), 10) || 0;
     return idB - idA;
   });
+}
+
+// Helper para obter a data de hoje no fuso horário do Brasil (DD/MM/YYYY)
+function getTodayBR() {
+  return new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }).format(new Date());
 }

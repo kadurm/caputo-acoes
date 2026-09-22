@@ -30,7 +30,15 @@ const DEFAULT_DATA = {
   videos: [],
   config: {
     whatsappUrl: 'https://wa.me/5500000000000',
-    instagramUrl: 'https://instagram.com/caputoacoes'
+    instagramUrl: 'https://instagram.com/caputoacoes',
+    cloudinaryCloudName: 'dxeju6d3e',
+    cloudinaryUploadPreset: 'caputo_videos'
+  },
+  analytics: {
+    today: '22/09/2026',
+    todayViews: 0,
+    totalViews: 0,
+    history: {}
   }
 };
 

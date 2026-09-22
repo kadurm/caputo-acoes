@@ -12,10 +12,10 @@
   "acoes": [
     {
       "id": "acao_1",
-      "titulo": "iPhone 15 Pro Max 256GB",
-      "precoCota": "0,10",
-      "imagemUrl": "https://placehold.co/200x200/111827/ca8a04?text=IPHONE",
-      "porcentagemVendido": 70,
+      "titulo": "iPhone 16 Pro Max 256GB",
+      "precoCota": "0,15",
+      "imagemUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&auto=format&fit=crop&q=80",
+      "porcentagemVendido": 74,
       "localExibicao": "Aba: Ativas",
       "linkCheckout": "https://wa.me/5500000000000",
       "status": "ativa"
@@ -24,49 +24,187 @@
   "encerradas": [
     {
       "id": "enc_1",
-      "titulo": "BMW GS 1200",
-      "imagemUrl": "https://placehold.co/300x300/333/fff?text=MOTO+BMW",
+      "titulo": "Volkswagen Jetta 2.0 (June - Contagem)",
+      "imagemUrl": "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&auto=format&fit=crop&q=80",
       "status": "Finalizada"
     },
     {
       "id": "enc_2",
-      "titulo": "10 Mil no PIX",
-      "imagemUrl": "https://placehold.co/300x300/333/fff?text=R$+10.000",
+      "titulo": "Honda PCX (Vitória - São João del Rei)",
+      "imagemUrl": "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&auto=format&fit=crop&q=80",
+      "status": "Finalizada"
+    },
+    {
+      "id": "enc_3",
+      "titulo": "12 Salários Mínimos (Renata - São João del Rei)",
+      "imagemUrl": "https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=400&auto=format&fit=crop&q=80",
+      "status": "Finalizada"
+    },
+    {
+      "id": "enc_4",
+      "titulo": "iPhone 17 Pro Max (Karine - Prados)",
+      "imagemUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&auto=format&fit=crop&q=80",
+      "status": "Finalizada"
+    },
+    {
+      "id": "enc_5",
+      "titulo": "Bilhete Premiado iPhone (Raphaela - Divinópolis)",
+      "imagemUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&auto=format&fit=crop&q=80",
+      "status": "Finalizada"
+    },
+    {
+      "id": "enc_6",
+      "titulo": "Bilhete Premiado iPhone (Isabela - São João del Rei)",
+      "imagemUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&auto=format&fit=crop&q=80",
       "status": "Finalizada"
     }
   ],
   "ganhadores": [
     {
-      "id": "ganhador_1",
-      "nome": "João Silva",
-      "premio": "S10 Midnight + R$ 10k",
-      "bilhete": "589.412",
-      "data": "12/08/2026",
-      "imagemUrl": "https://placehold.co/600x400/222/ca8a04?text=FOTO+DO+GANHADOR+COM+CARRO"
+      "id": "ganhador_1506",
+      "nome": "Aline",
+      "cidade": "Belo Horizonte - MG",
+      "premio": "Entrega de Ação",
+      "bilhete": "Sorteio Federal",
+      "data": "15/06/2026",
+      "imagemUrl": "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=600&auto=format&fit=crop&q=80"
     },
     {
-      "id": "ganhador_2",
-      "nome": "Maria Oliveira",
-      "premio": "Honda XRE 300",
-      "bilhete": "102.884",
-      "data": "25/07/2026",
-      "imagemUrl": "https://placehold.co/600x400/222/ca8a04?text=FOTO+DA+GANHADORA+MOTO"
+      "id": "ganhador_2605",
+      "nome": "Karine",
+      "cidade": "Prados - MG",
+      "premio": "iPhone Pro Max",
+      "bilhete": "Cota Premiada",
+      "data": "26/05/2026",
+      "imagemUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=600&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "ganhador_1305",
+      "nome": "Renata",
+      "cidade": "São João del Rei - MG",
+      "premio": "12 Salários Mínimos",
+      "bilhete": "Sorteio Federal",
+      "data": "13/05/2026",
+      "imagemUrl": "https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=600&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "ganhador_1205",
+      "nome": "Isabela",
+      "cidade": "São João del Rei - MG",
+      "premio": "Bilhete Premiado iPhone",
+      "bilhete": "Cota Premiada",
+      "data": "12/05/2026",
+      "imagemUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=600&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "ganhador_0604",
+      "nome": "Raphaela",
+      "cidade": "Divinópolis - MG",
+      "premio": "Bilhete Premiado iPhone",
+      "bilhete": "Cota Premiada",
+      "data": "06/04/2026",
+      "imagemUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=600&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "ganhador_0304",
+      "nome": "June",
+      "cidade": "Contagem - MG",
+      "premio": "Volkswagen Jetta 2.0",
+      "bilhete": "Sorteio Federal",
+      "data": "03/04/2026",
+      "imagemUrl": "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "ganhador_2103",
+      "nome": "Vitória",
+      "cidade": "São João del Rei - MG",
+      "premio": "Honda PCX",
+      "bilhete": "Sorteio Federal",
+      "data": "21/03/2026",
+      "imagemUrl": "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=600&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "ganhador_anaraquel",
+      "nome": "Ana Raquel",
+      "cidade": "Feira de Santana - BA",
+      "premio": "Bilhete Premiado iPhone",
+      "bilhete": "Cota Premiada",
+      "data": "Entrega Confirmada",
+      "imagemUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=600&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "ganhador_ricardo",
+      "nome": "Ricardo",
+      "cidade": "São João del Rei - MG",
+      "premio": "Bilhete Premiado iPhone",
+      "bilhete": "Cota Premiada",
+      "data": "Entrega Confirmada",
+      "imagemUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=600&auto=format&fit=crop&q=80"
     }
   ],
   "videos": [
     {
       "id": "video_1",
-      "titulo": "Entrega da S10 Midnight para o João Silva",
-      "data": "14 Ago 2026",
-      "videoUrl": "https://youtube.com",
-      "thumbnailUrl": "https://placehold.co/800x450/111/fff?text=THUMBNAIL+DO+VIDEO"
+      "titulo": "Entrega Volkswagen Jetta 2.0 - June (Contagem - MG)",
+      "data": "03/04/2026",
+      "videoUrl": "Sorteios/Finalizadas/0304%20June.%20CONTAGEM-%20MG%20.%20Jetta%202.0.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop&q=80"
     },
     {
       "id": "video_2",
-      "titulo": "Sorteio Ao Vivo - Ação Honda XRE",
-      "data": "25 Jul 2026",
-      "videoUrl": "https://youtube.com",
-      "thumbnailUrl": "https://placehold.co/800x450/111/fff?text=THUMBNAIL+DO+VIDEO+2"
+      "titulo": "Entrega Honda PCX - Vitória (São João del Rei - MG)",
+      "data": "21/03/2026",
+      "videoUrl": "Sorteios/Finalizadas/2103%20Vit%C3%B3ria%20-%20S%C3%A3o%20Jo%C3%A3o%20del%20rei%20-%20MG%20.%20Honda%20Pcx.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "video_3",
+      "titulo": "Entrega 12 Salários Mínimos - Renata (São João del Rei - MG)",
+      "data": "13/05/2026",
+      "videoUrl": "Sorteios/Finalizadas/1305%20-%20Renata%20-%20S%C3%83O%20JO%C3%83O%20DEL%20REI%20-%20MG%20.%2012%20sal%C3%A1rios%20m%C3%ADnimos.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=800&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "video_4",
+      "titulo": "Bilhete Premiado iPhone - Raphaela (Divinópolis - MG)",
+      "data": "06/04/2026",
+      "videoUrl": "Sorteios/Finalizadas/0604%20-%20raphaela%20-%20Divin%C3%B3polis%20-%20MG%20.%20Bilhete%20premiado%20iPhone.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "video_5",
+      "titulo": "Bilhete Premiado iPhone - Isabela (São João del Rei - MG)",
+      "data": "12/05/2026",
+      "videoUrl": "Sorteios/Finalizadas/1205%20-%20Isabela%20%2C%20SAO%20JO%C3%83O%20DEL%20REI%20bilhete%20premiado%20iPhone.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "video_6",
+      "titulo": "iPhone Pro Max - Karine (Prados - MG)",
+      "data": "26/05/2026",
+      "videoUrl": "Sorteios/Finalizadas/Karine%20-%20PRADOS%20-%20MG.%202605%2017%20pro%20max.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "video_7",
+      "titulo": "Entrega em Belo Horizonte - Aline",
+      "data": "15/06/2026",
+      "videoUrl": "Sorteios/Finalizadas/Aline%20belo%20horizonte%2015062026.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=800&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "video_8",
+      "titulo": "Bilhete Premiado iPhone - Ana Raquel (Feira de Santana - BA)",
+      "data": "Comprovante de Entrega",
+      "videoUrl": "Sorteios/Finalizadas/Ana%20Raquel-%20%20Feira%20de%20Santana%20-%20BA%2C%20bilhete%20premiado%20iPhone.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "video_9",
+      "titulo": "Bilhete Premiado iPhone - Ricardo (São João del Rei - MG)",
+      "data": "Comprovante de Entrega",
+      "videoUrl": "Sorteios/Finalizadas/Ricardo%20-%20S%C3%A3o%20Jo%C3%A3o%20del%20rei%20%2C%20iPhone%20bilhete%20iPhone.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80"
     }
   ],
   "config": {

@@ -79,8 +79,8 @@ function renderPageData(db) {
           </div>
           <img src="${g.imagemUrl}" alt="${g.nome}" class="w-full h-48 object-cover">
           <div class="p-4">
-              <h4 class="font-bold text-lg text-gray-900">${g.nome}</h4>
-              <p class="text-sm text-gray-600">Ganhador da <span class="font-semibold">${g.premio}</span></p>
+              <h4 class="font-bold text-lg text-gray-900">${g.nome} ${g.cidade ? `<span class="text-xs text-gray-500 font-medium">(${g.cidade})</span>` : ''}</h4>
+              <p class="text-sm text-gray-600">Ganhador(a) da <span class="font-semibold text-gray-900">${g.premio}</span></p>
               
               <div class="mt-3 bg-gray-50 border border-gray-200 rounded-lg p-3 flex justify-between items-center">
                   <div>
@@ -100,20 +100,34 @@ function renderPageData(db) {
   // 4. Render Vídeos / Comprovações
   const tabVideosContainer = document.querySelector('#tab-resultados .space-y-6');
   if (tabVideosContainer && db.videos && db.videos.length > 0) {
-    tabVideosContainer.innerHTML = db.videos.map(v => `
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-          <a href="${v.videoUrl}" target="_blank" class="aspect-video bg-gray-900 relative flex items-center justify-center block">
-              <img src="${v.thumbnailUrl}" alt="${v.titulo}" class="absolute inset-0 w-full h-full object-cover opacity-60">
-              <button class="relative z-10 w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 transition-transform">
-                  <i class="ph-fill ph-play text-2xl"></i>
-              </button>
-          </a>
-          <div class="p-4">
-              <h4 class="font-bold text-gray-900 leading-tight">${v.titulo}</h4>
-              <p class="text-xs text-gray-500 mt-1"><i class="ph ph-calendar"></i> Publicado em ${v.data}</p>
-          </div>
-      </div>
-    `).join('');
+    tabVideosContainer.innerHTML = db.videos.map(v => {
+      const isMp4 = v.videoUrl && v.videoUrl.toLowerCase().includes('.mp4');
+      const mediaHtml = isMp4 ? `
+        <div class="aspect-video bg-black relative flex items-center justify-center">
+            <video controls preload="metadata" playsinline class="w-full h-full object-contain">
+                <source src="${v.videoUrl}" type="video/mp4">
+                Seu navegador não suporta a tag de vídeo.
+            </video>
+        </div>
+      ` : `
+        <a href="${v.videoUrl}" target="_blank" class="aspect-video bg-gray-900 relative flex items-center justify-center block">
+            <img src="${v.thumbnailUrl}" alt="${v.titulo}" class="absolute inset-0 w-full h-full object-cover opacity-60">
+            <button class="relative z-10 w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 transition-transform">
+                <i class="ph-fill ph-play text-2xl"></i>
+            </button>
+        </a>
+      `;
+
+      return `
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            ${mediaHtml}
+            <div class="p-4">
+                <h4 class="font-bold text-gray-900 leading-tight">${v.titulo}</h4>
+                <p class="text-xs text-gray-500 mt-1"><i class="ph ph-calendar"></i> ${v.data}</p>
+            </div>
+        </div>
+      `;
+    }).join('');
   }
 
   // 5. Render Encerradas

@@ -632,6 +632,116 @@ app.delete('/api/videos/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// --- CONTROLE FINANCEIRO (FATURAMENTO, DESPESAS E LUCRO) ---
+
+// GET /api/financeiro - Obter lançamentos e resumo financeiro
+app.get('/api/financeiro', authenticateToken, async (req, res) => {
+  try {
+    const db = await getAppData();
+    const transacoes = (db.financeiro && db.financeiro.transacoes) || [];
+
+    let faturamentoTotal = 0;
+    let despesasTotais = 0;
+
+    transacoes.forEach(t => {
+      const val = parseFloat(t.valor) || 0;
+      if (t.tipo === 'receita') {
+        faturamentoTotal += val;
+      } else if (t.tipo === 'despesa') {
+        despesasTotais += val;
+      }
+    });
+
+    const lucroLiquido = faturamentoTotal - despesasTotais;
+    const margemLucro = faturamentoTotal > 0 ? ((lucroLiquido / faturamentoTotal) * 100).toFixed(1) : 0;
+
+    res.json({
+      success: true,
+      data: {
+        transacoes,
+        resumo: {
+          faturamentoTotal,
+          despesasTotais,
+          lucroLiquido,
+          margemLucro: Number(margemLucro)
+        }
+      }
+    });
+  } catch (err) {
+    console.error('Erro ao buscar dados financeiros:', err);
+    res.status(500).json({ success: false, message: 'Erro ao carregar dados financeiros.' });
+  }
+});
+
+// POST /api/financeiro - Registrar nova transação (receita ou despesa)
+app.post('/api/financeiro', authenticateToken, async (req, res) => {
+  try {
+    const { tipo, descricao, valor, categoria, data } = req.body;
+
+    if (!tipo || !descricao || valor === undefined || valor === null || !data) {
+      return res.status(400).json({ success: false, message: 'Campos tipo, descricao, valor e data são obrigatórios.' });
+    }
+
+    const valorNum = parseFloat(String(valor).replace(',', '.'));
+    if (isNaN(valorNum) || valorNum <= 0) {
+      return res.status(400).json({ success: false, message: 'Informe um valor numérico válido maior que zero.' });
+    }
+
+    const db = await getAppData();
+    db.financeiro = db.financeiro || { transacoes: [] };
+    db.financeiro.transacoes = db.financeiro.transacoes || [];
+
+    const novaTransacao = {
+      id: 'trans_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+      tipo: tipo === 'despesa' ? 'despesa' : 'receita',
+      descricao: String(descricao).trim(),
+      valor: valorNum,
+      categoria: categoria ? String(categoria).trim() : (tipo === 'despesa' ? 'Outras Despesas' : 'Venda de Cotas'),
+      data: String(data).trim(), // Formato YYYY-MM-DD
+      criadoEm: new Date().toISOString()
+    };
+
+    // Ordenar ou inserir no topo
+    db.financeiro.transacoes.unshift(novaTransacao);
+    await saveAppData(db);
+
+    res.json({
+      success: true,
+      message: 'Lançamento financeiro registrado com sucesso!',
+      transacao: novaTransacao
+    });
+  } catch (err) {
+    console.error('Erro ao registrar transação financeira:', err);
+    res.status(500).json({ success: false, message: 'Erro ao salvar transação financeira.' });
+  }
+});
+
+// DELETE /api/financeiro/:id - Excluir transação financeira
+app.delete('/api/financeiro/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const db = await getAppData();
+    db.financeiro = db.financeiro || { transacoes: [] };
+    db.financeiro.transacoes = db.financeiro.transacoes || [];
+
+    const index = db.financeiro.transacoes.findIndex(t => t.id === id);
+    if (index === -1) {
+      return res.status(404).json({ success: false, message: 'Lançamento não encontrado.' });
+    }
+
+    db.financeiro.transacoes.splice(index, 1);
+    await saveAppData(db);
+
+    res.json({
+      success: true,
+      message: 'Lançamento financeiro removido com sucesso!'
+    });
+  } catch (err) {
+    console.error('Erro ao excluir transação financeira:', err);
+    res.status(500).json({ success: false, message: 'Erro ao excluir lançamento financeiro.' });
+  }
+});
+
 // CONFIGURAÇÕES
 app.get('/api/config', async (req, res) => {
   try {

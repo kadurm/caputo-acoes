@@ -119,6 +119,10 @@ async function loadAdminData() {
     if (json.success && json.data) {
       renderAdminDashboard(json.data);
     }
+    // Sincronizar dados financeiros via API autenticada
+    if (authToken) {
+      loadFinanceiroData();
+    }
   } catch (err) {
     console.error('Erro ao carregar dados do painel:', err);
     showToast('Falha ao sincronizar dados do servidor.', 'error');
@@ -163,6 +167,11 @@ function renderAdminDashboard(db) {
         </button>
       `;
     }
+  }
+
+  // Render Controle Financeiro
+  if (db.financeiro) {
+    renderFinanceiroDashboard(db.financeiro);
   }
 
   // Render Table: Ações
@@ -1008,3 +1017,399 @@ function getTodayBR() {
     year: 'numeric'
   }).format(new Date());
 }
+
+// ========================================================
+// CONTROLE FINANCEIRO: FATURAMENTO, DESPESAS E LUCRO
+// ========================================================
+
+let chartFinanceiroEvolucao = null;
+let chartFinanceiroCategorias = null;
+
+function formatCurrencyBRL(num) {
+  return Number(num || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function formatBRDateDisplay(dateStr) {
+  if (!dateStr) return '--/--/----';
+  if (dateStr.includes('-')) {
+    const parts = dateStr.split('-');
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  return dateStr;
+}
+
+async function loadFinanceiroData() {
+  if (!authToken) return;
+  try {
+    const res = await fetch('/api/financeiro', {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const json = await res.json();
+    if (json.success && json.data) {
+      if (window.adminDataCache) {
+        window.adminDataCache.financeiro = json.data;
+      }
+      renderFinanceiroDashboard(json.data);
+    }
+  } catch (err) {
+    console.error('Erro ao buscar dados financeiros:', err);
+  }
+}
+
+function renderFinanceiroDashboard(financeiroData) {
+  const transacoes = (financeiroData && financeiroData.transacoes) || [];
+
+  let faturamentoTotal = 0;
+  let despesasTotais = 0;
+
+  transacoes.forEach(t => {
+    const val = parseFloat(t.valor) || 0;
+    if (t.tipo === 'receita') {
+      faturamentoTotal += val;
+    } else if (t.tipo === 'despesa') {
+      despesasTotais += val;
+    }
+  });
+
+  const lucroLiquido = faturamentoTotal - despesasTotais;
+  const margemLucro = faturamentoTotal > 0 ? ((lucroLiquido / faturamentoTotal) * 100).toFixed(1) : 0;
+
+  // Atualizar cards de métricas
+  const fatEl = document.getElementById('fin-faturamento-total');
+  if (fatEl) fatEl.textContent = formatCurrencyBRL(faturamentoTotal);
+
+  const despEl = document.getElementById('fin-despesas-totais');
+  if (despEl) despEl.textContent = formatCurrencyBRL(despesasTotais);
+
+  const lucroEl = document.getElementById('fin-lucro-liquido');
+  if (lucroEl) {
+    lucroEl.textContent = formatCurrencyBRL(lucroLiquido);
+    lucroEl.className = lucroLiquido >= 0 
+      ? 'text-2xl md:text-3xl font-extrabold text-white mt-1' 
+      : 'text-2xl md:text-3xl font-extrabold text-rose-400 mt-1';
+  }
+
+  const margemEl = document.getElementById('fin-badge-margem');
+  if (margemEl) {
+    margemEl.textContent = `${margemLucro}% Margem`;
+    margemEl.className = lucroLiquido >= 0
+      ? 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+      : 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30';
+  }
+
+  const cardLucro = document.getElementById('fin-card-lucro');
+  if (cardLucro) {
+    if (lucroLiquido >= 0) {
+      cardLucro.className = 'bg-gradient-to-br from-gray-900 to-black text-white p-5 rounded-2xl shadow-lg relative overflow-hidden border border-emerald-900/50';
+    } else {
+      cardLucro.className = 'bg-gradient-to-br from-gray-950 to-rose-950 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden border border-rose-900/60';
+    }
+  }
+
+  const countEl = document.getElementById('fin-transacoes-count');
+  if (countEl) countEl.textContent = `${transacoes.length} lançamento${transacoes.length === 1 ? '' : 's'}`;
+
+  // Renderizar Tabela de Transações
+  const tbody = document.getElementById('fin-transacoes-tbody');
+  if (tbody) {
+    if (transacoes.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+            <td colspan="6" class="p-6 text-center text-gray-400 text-sm">
+                Nenhum lançamento financeiro registrado. Clique em "+ Nova Transação" acima.
+            </td>
+        </tr>
+      `;
+    } else {
+      tbody.innerHTML = transacoes.map(t => {
+        const isReceita = t.tipo === 'receita';
+        const formattedDate = formatBRDateDisplay(t.data);
+        const valorFormatado = formatCurrencyBRL(t.valor);
+        const valorColor = isReceita ? 'text-emerald-700 font-bold' : 'text-rose-600 font-bold';
+        const sinal = isReceita ? '+ ' : '- ';
+        const tipoBadge = isReceita 
+          ? '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="ph-bold ph-arrow-up-right"></i> Receita</span>'
+          : '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200"><i class="ph-bold ph-arrow-down-left"></i> Despesa</span>';
+
+        return `
+          <tr class="hover:bg-gray-50/80 transition-colors">
+              <td class="p-3.5 font-medium text-gray-700 text-xs whitespace-nowrap">${formattedDate}</td>
+              <td class="p-3.5 whitespace-nowrap">${tipoBadge}</td>
+              <td class="p-3.5 text-gray-900 font-semibold">${escapeHtml(t.descricao || 'Sem descrição')}</td>
+              <td class="p-3.5 text-gray-600 text-xs whitespace-nowrap">
+                  <span class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-md border border-gray-200">${escapeHtml(t.categoria || 'Geral')}</span>
+              </td>
+              <td class="p-3.5 text-right whitespace-nowrap ${valorColor}">
+                  ${sinal}${valorFormatado}
+              </td>
+              <td class="p-3.5 text-center whitespace-nowrap">
+                  <button onclick="deleteTransacaoItem('${t.id}')" class="text-gray-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Excluir Transação">
+                      <i class="ph-bold ph-trash text-base"></i>
+                  </button>
+              </td>
+          </tr>
+        `;
+      }).join('');
+    }
+  }
+
+  // Renderizar Gráficos Visuais com Chart.js
+  if (typeof Chart !== 'undefined') {
+    renderChartsFinanceiro(transacoes);
+  }
+}
+
+function renderChartsFinanceiro(transacoes) {
+  renderChartEvolucao(transacoes);
+  renderChartCategorias(transacoes);
+}
+
+function renderChartEvolucao(transacoes) {
+  const canvas = document.getElementById('chartFinanceiroEvolucao');
+  if (!canvas) return;
+
+  if (chartFinanceiroEvolucao) {
+    chartFinanceiroEvolucao.destroy();
+    chartFinanceiroEvolucao = null;
+  }
+
+  const mesesMap = {};
+  const mesesNomes = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  
+  // Inicializar os últimos 6 meses
+  const hoje = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+    const key = `${mesesNomes[d.getMonth()]}/${String(d.getFullYear()).slice(-2)}`;
+    mesesMap[key] = { receita: 0, despesa: 0, lucro: 0 };
+  }
+
+  transacoes.forEach(t => {
+    let d = new Date(t.data);
+    if (isNaN(d.getTime())) d = new Date();
+    const key = `${mesesNomes[d.getMonth()]}/${String(d.getFullYear()).slice(-2)}`;
+    if (!mesesMap[key]) {
+      mesesMap[key] = { receita: 0, despesa: 0, lucro: 0 };
+    }
+    const val = parseFloat(t.valor) || 0;
+    if (t.tipo === 'receita') {
+      mesesMap[key].receita += val;
+    } else if (t.tipo === 'despesa') {
+      mesesMap[key].despesa += val;
+    }
+    mesesMap[key].lucro = mesesMap[key].receita - mesesMap[key].despesa;
+  });
+
+  const labels = Object.keys(mesesMap);
+  const dataReceitas = labels.map(k => mesesMap[k].receita);
+  const dataDespesas = labels.map(k => mesesMap[k].despesa);
+  const dataLucro = labels.map(k => mesesMap[k].lucro);
+
+  const ctx = canvas.getContext('2d');
+  chartFinanceiroEvolucao = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Faturamento (Receitas)',
+          data: dataReceitas,
+          backgroundColor: '#10b981',
+          borderRadius: 6,
+          barPercentage: 0.6,
+          categoryPercentage: 0.7
+        },
+        {
+          label: 'Despesas',
+          data: dataDespesas,
+          backgroundColor: '#f43f5e',
+          borderRadius: 6,
+          barPercentage: 0.6,
+          categoryPercentage: 0.7
+        },
+        {
+          label: 'Lucro Líquido',
+          data: dataLucro,
+          type: 'line',
+          borderColor: '#111827',
+          backgroundColor: 'rgba(17, 24, 39, 0.08)',
+          borderWidth: 2.5,
+          tension: 0.35,
+          pointBackgroundColor: '#111827',
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return ` ${context.dataset.label}: ${formatCurrencyBRL(context.raw)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 11 } }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              if (value >= 1000) return 'R$ ' + (value / 1000).toFixed(0) + 'k';
+              return 'R$ ' + value;
+            },
+            font: { size: 10 }
+          },
+          grid: { color: '#f3f4f6' }
+        }
+      }
+    }
+  });
+}
+
+function renderChartCategorias(transacoes) {
+  const canvas = document.getElementById('chartFinanceiroCategorias');
+  if (!canvas) return;
+
+  if (chartFinanceiroCategorias) {
+    chartFinanceiroCategorias.destroy();
+    chartFinanceiroCategorias = null;
+  }
+
+  const catMap = {};
+  transacoes.forEach(t => {
+    const cat = t.categoria || (t.tipo === 'despesa' ? 'Outras Despesas' : 'Venda de Cotas');
+    catMap[cat] = (catMap[cat] || 0) + (parseFloat(t.valor) || 0);
+  });
+
+  let labels = Object.keys(catMap);
+  let data = Object.values(catMap);
+
+  if (labels.length === 0) {
+    labels = ['Sem dados ainda'];
+    data = [1];
+  }
+
+  const colors = [
+    '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
+    '#f43f5e', '#f59e0b', '#84cc16', '#64748b'
+  ];
+
+  const ctx = canvas.getContext('2d');
+  chartFinanceiroCategorias = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          data: data,
+          backgroundColor: labels[0] === 'Sem dados ainda' ? ['#e5e7eb'] : colors.slice(0, labels.length),
+          borderWidth: 2,
+          borderColor: '#ffffff',
+          hoverOffset: 6
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            boxWidth: 10,
+            font: { size: 11 },
+            padding: 8
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              if (labels[0] === 'Sem dados ainda') return 'Nenhum lançamento';
+              return ` ${context.label}: ${formatCurrencyBRL(context.raw)}`;
+            }
+          }
+        }
+      },
+      cutout: '68%'
+    }
+  });
+}
+
+async function submitNovaTransacao(event) {
+  event.preventDefault();
+
+  const tipo = document.querySelector('input[name="transacao-tipo"]:checked')?.value || 'receita';
+  const valor = document.getElementById('transacao-valor')?.value;
+  const data = document.getElementById('transacao-data')?.value;
+  const descricao = document.getElementById('transacao-descricao')?.value;
+  const categoria = document.getElementById('transacao-categoria')?.value;
+
+  const submitBtn = document.getElementById('modal-transacao-submit');
+  const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Salvar Lançamento';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Salvando...';
+  }
+
+  try {
+    const res = await fetch('/api/financeiro', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+      },
+      body: JSON.stringify({ tipo, valor, data, descricao, categoria })
+    });
+
+    const json = await res.json();
+    if (json.success) {
+      showToast(json.message || 'Lançamento financeiro registrado com sucesso!', 'success');
+      closeModal();
+      await loadFinanceiroData();
+    } else {
+      showToast(json.message || 'Erro ao registrar transação.', 'error');
+    }
+  } catch (err) {
+    console.error('Erro ao enviar transação financeira:', err);
+    showToast('Erro de comunicação com o servidor.', 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnText;
+    }
+  }
+}
+
+async function deleteTransacaoItem(id) {
+  if (!confirm('Deseja realmente excluir este lançamento financeiro?')) return;
+
+  try {
+    const res = await fetch(`/api/financeiro/${id}`, {
+      method: 'DELETE',
+      headers: {
+        ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+      }
+    });
+
+    const json = await res.json();
+    if (json.success) {
+      showToast('Lançamento removido com sucesso!', 'success');
+      await loadFinanceiroData();
+    } else {
+      showToast(json.message || 'Erro ao excluir lançamento.', 'error');
+    }
+  } catch (err) {
+    console.error('Erro ao excluir transação financeira:', err);
+    showToast('Erro ao comunicar com o servidor.', 'error');
+  }
+}
+

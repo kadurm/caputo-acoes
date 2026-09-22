@@ -39,6 +39,9 @@ const DEFAULT_DATA = {
     todayViews: 0,
     totalViews: 0,
     history: {}
+  },
+  financeiro: {
+    transacoes: []
   }
 };
 
@@ -102,6 +105,17 @@ function writeLocalFile(data) {
   }
 }
 
+function normalizeAppData(data) {
+  if (!data) return JSON.parse(JSON.stringify(DEFAULT_DATA));
+  data.acoes = data.acoes || [];
+  data.encerradas = data.encerradas || [];
+  data.ganhadores = data.ganhadores || [];
+  data.videos = data.videos || [];
+  data.financeiro = data.financeiro || { transacoes: [] };
+  data.financeiro.transacoes = data.financeiro.transacoes || [];
+  return data;
+}
+
 /**
  * Retorna todos os dados da plataforma
  */
@@ -114,7 +128,7 @@ async function getAppData() {
         const doc = await collection.findOne({ _id: 'current_state' });
         if (doc) {
           const { _id, ...cleanData } = doc;
-          return cleanData;
+          return normalizeAppData(cleanData);
         }
 
         // Se for a primeira vez no MongoDB, popula com os dados iniciais locais
@@ -124,14 +138,14 @@ async function getAppData() {
           { $set: { ...initialData, updatedAt: new Date() } },
           { upsert: true }
         );
-        return initialData;
+        return normalizeAppData(initialData);
       } catch (err) {
         console.error('❌ Erro ao consultar MongoDB, usando fallback:', err.message);
       }
     }
   }
 
-  return readLocalFile();
+  return normalizeAppData(readLocalFile());
 }
 
 /**

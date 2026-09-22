@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Admin | Caputo Ações</title>
     
     <!-- Google Fonts -->
@@ -349,47 +352,6 @@
                 </div>
             </div>
 
-            <!-- VIEW: GANHADORES -->
-            <div id="view-ganhadores" class="view-section hidden">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-                    <div>
-                        <h2 class="text-2xl font-bold text-gray-900">Bilhetes Premiados</h2>
-                        <p class="text-gray-500 text-sm mt-1">Alimente a aba de ganhadores para gerar prova social.</p>
-                    </div>
-                    <button onclick="openModal('modal-ganhador')" class="bg-brand-dark hover:bg-black text-white px-5 py-2.5 rounded-xl font-bold shadow-md flex items-center gap-2 transition-transform active:scale-95">
-                        <i class="ph-bold ph-plus"></i> Novo Ganhador
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Winner Card -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden relative group">
-                        <!-- Hover Actions -->
-                        <div class="absolute top-2 right-2 flex gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="showToast('Editando...', 'info')" class="p-2 bg-white/90 backdrop-blur text-gray-700 hover:text-brand-dark rounded-lg shadow-sm"><i class="ph-bold ph-pencil-simple"></i></button>
-                            <button onclick="showToast('Excluindo...', 'error')" class="p-2 bg-white/90 backdrop-blur text-red-500 hover:text-red-700 rounded-lg shadow-sm"><i class="ph-bold ph-trash"></i></button>
-                        </div>
-                        
-                        <img src="https://placehold.co/600x400/222/ffffff?text=FOTO+GANHADOR" class="w-full h-48 object-cover">
-                        <div class="p-5">
-                            <h4 class="font-bold text-lg text-gray-900">João Silva</h4>
-                            <p class="text-sm text-gray-600 mt-1">Prêmio: <span class="font-semibold text-gray-900">S10 Midnight + R$ 10k</span></p>
-                            
-                            <div class="mt-4 bg-gray-50 border border-gray-100 rounded-xl p-3 flex justify-between items-center">
-                                <div>
-                                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Bilhete</p>
-                                    <p class="font-mono font-bold text-brand-action">589.412</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Data</p>
-                                    <p class="text-sm font-semibold text-gray-700">12/08/2026</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- VIEW: RESULTADOS / VIDEOS -->
             <div id="view-videos" class="view-section hidden">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -536,47 +498,6 @@
             </form>
         </div>
 
-        <!-- MODAL: NOVO GANHADOR -->
-        <div id="modal-ganhador" class="modal-content modal-body-scroll hidden bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-y-auto">
-            <div class="sticky top-0 bg-white border-b border-gray-100 p-5 flex justify-between items-center z-10">
-                <h3 id="modal-ganhador-title" class="text-xl font-bold text-gray-900 font-serif tracking-wide">Registrar Ganhador</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 p-2 rounded-lg transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
-            </div>
-            <form class="p-6 space-y-5" onsubmit="submitNovoGanhador(event)">
-                <input type="hidden" id="ganhador-id" value="">
-                <div>
-                    <label class="block text-sm font-bold text-gray-800 mb-2">Foto da Entrega do Prêmio</label>
-                    <input type="file" id="ganhador-foto-input" accept="image/*" onchange="handleFileUpload(this, 'modal-ganhador')" class="w-full p-2 border border-gray-300 rounded-xl text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-gray-100 file:text-gray-800 hover:file:bg-gray-200 file:cursor-pointer cursor-pointer">
-                    <p id="ganhador-foto-info" class="mt-1.5 text-xs text-gray-500 hidden"></p>
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-gray-800 mb-2">Nome Completo do Ganhador</label>
-                    <input type="text" id="ganhador-nome" placeholder="Ex: Maria Oliveira" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-gray-800 mb-2">Prêmio Recebido (Texto que aparece no Card)</label>
-                    <input type="text" id="ganhador-premio" placeholder="Ex: Honda XRE 300" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" required>
-                </div>
-                <div class="grid grid-cols-2 gap-5">
-                    <div>
-                        <label class="block text-sm font-bold text-gray-800 mb-2">Nº do Bilhete</label>
-                        <input type="text" id="ganhador-bilhete" placeholder="102.884" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900 font-mono" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-gray-800 mb-2">Data do Sorteio</label>
-                        <input type="date" id="ganhador-data" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" required>
-                    </div>
-                </div>
-                
-                <div class="pt-4 mt-6 border-t border-gray-100 flex gap-3 justify-end">
-                    <button type="button" onclick="closeModal()" class="px-5 py-3 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-bold transition-colors">Cancelar</button>
-                    <button type="submit" id="modal-ganhador-submit" class="px-5 py-3 bg-brand-dark hover:bg-black text-white rounded-xl font-bold shadow-md transition-transform active:scale-95 flex items-center gap-2">
-                        <i class="ph-bold ph-check"></i> Salvar Ganhador
-                    </button>
-                </div>
-            </form>
-        </div>
-
         <!-- MODAL: NOVO VIDEO -->
         <div id="modal-video" class="modal-content modal-body-scroll hidden bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-y-auto">
             <div class="sticky top-0 bg-white border-b border-gray-100 p-5 flex justify-between items-center z-10">
@@ -695,16 +616,6 @@
                     const fileText = document.getElementById('acao-file-text');
                     if (fileText) fileText.textContent = 'Clique para selecionar imagem';
                     if (typeof uploadedImageUrls !== 'undefined') delete uploadedImageUrls['modal-acao'];
-                } else if (modalId === 'modal-ganhador') {
-                    const idInput = document.getElementById('ganhador-id');
-                    if (idInput) idInput.value = '';
-                    const titleEl = document.getElementById('modal-ganhador-title');
-                    if (titleEl) titleEl.textContent = 'Registrar Ganhador';
-                    const submitEl = document.getElementById('modal-ganhador-submit');
-                    if (submitEl) submitEl.innerHTML = '<i class="ph-bold ph-check"></i> Salvar Ganhador';
-                    const infoEl = document.getElementById('ganhador-foto-info');
-                    if (infoEl) { infoEl.textContent = ''; infoEl.classList.add('hidden'); }
-                    if (typeof uploadedImageUrls !== 'undefined') delete uploadedImageUrls['modal-ganhador'];
                 } else if (modalId === 'modal-video') {
                     const idInput = document.getElementById('video-id');
                     if (idInput) idInput.value = '';
@@ -803,6 +714,6 @@
         }
     </script>
     <!-- JAVASCRIPT ADMIN CONECTADO À API -->
-    <script src="/js/admin.js"></script>
+    <script src="/js/admin.js?v=20260922_03"></script>
 </body>
 </html>

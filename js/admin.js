@@ -1,5 +1,6 @@
 let authToken = localStorage.getItem('caputo_token');
 let uploadedImageUrls = {};
+let uploadedVideoUrls = {};
 
 document.addEventListener('DOMContentLoaded', () => {
   initAdmin();
@@ -328,6 +329,56 @@ async function handleFileUpload(fileInput, formKey) {
   }
 }
 
+// Upload Video Handler via API (/api/upload)
+async function handleVideoUpload(fileInput, formKey) {
+  if (!fileInput.files || fileInput.files.length === 0) return;
+  const file = fileInput.files[0];
+
+  const infoEl = document.getElementById('video-upload-info');
+  const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+
+  if (infoEl) {
+    infoEl.innerHTML = `<i class="ph-bold ph-spinner animate-spin text-red-600 text-base"></i> Enviando ${file.name} (${sizeMB} MB)... Por favor, aguarde.`;
+    infoEl.className = "mt-2 text-xs text-blue-600 flex items-center gap-1.5 font-medium";
+  }
+
+  showToast(`Enviando vídeo (${sizeMB} MB)...`, 'info');
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${authToken}` },
+      body: formData
+    });
+
+    const json = await res.json();
+    if (json.success && json.url) {
+      uploadedVideoUrls[formKey] = json.url;
+      if (infoEl) {
+        infoEl.innerHTML = `<i class="ph-fill ph-check-circle text-green-600 text-base"></i> Vídeo pronto: <strong>${file.name}</strong> (${sizeMB} MB)`;
+        infoEl.className = "mt-2 text-xs text-green-700 flex items-center gap-1.5 font-medium";
+      }
+      showToast('Vídeo enviado com sucesso!', 'success');
+    } else {
+      if (infoEl) {
+        infoEl.innerHTML = `<i class="ph-bold ph-warning-circle text-red-600 text-base"></i> Falha: ${json.message || 'Erro no upload'}`;
+        infoEl.className = "mt-2 text-xs text-red-600 flex items-center gap-1.5 font-medium";
+      }
+      showToast(json.message || 'Erro ao enviar vídeo.', 'error');
+    }
+  } catch (err) {
+    console.error('Erro no upload de vídeo:', err);
+    if (infoEl) {
+      infoEl.innerHTML = `<i class="ph-bold ph-warning-circle text-red-600 text-base"></i> Erro de conexão no upload.`;
+      infoEl.className = "mt-2 text-xs text-red-600 flex items-center gap-1.5 font-medium";
+    }
+    showToast('Falha de conexão ao enviar vídeo.', 'error');
+  }
+}
+
 // API CRUD Call: Create Nova Ação
 async function submitNovaAcao(event) {
   event.preventDefault();
@@ -443,14 +494,29 @@ async function deleteGanhadorItem(id) {
 async function submitNovoVideo(event) {
   event.preventDefault();
   const form = event.target;
-  const inputs = form.querySelectorAll('input');
+  const titulo = form.querySelector('#video-titulo').value.trim();
+  const dataInput = form.querySelector('#video-data').value;
+  const linkManual = form.querySelector('#video-url-input') ? form.querySelector('#video-url-input').value.trim() : '';
+  const finalVideoUrl = uploadedVideoUrls['modal-video'] || linkManual;
+
+  if (!finalVideoUrl) {
+    showToast('Por favor, selecione um arquivo de vídeo para envio.', 'error');
+    return;
+  }
 
   const payload = {
-    titulo: inputs[0].value,
-    videoUrl: inputs[1].value,
-    data: inputs[2].value ? new Date(inputs[2].value).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR'),
-    thumbnailUrl: uploadedImageUrls['modal-video'] || 'https://placehold.co/800x450/111/fff?text=VIDEO'
+    titulo: titulo,
+    videoUrl: finalVideoUrl,
+    data: dataInput ? new Date(dataInput + 'T12:00:00').toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR'),
+    thumbnailUrl: uploadedImageUrls['modal-video'] || 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=800&auto=format&fit=crop&q=80'
   };
+
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Salvar Vídeo';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-1"></i> Salvando...';
+  }
 
   try {
     const res = await fetch('/api/videos', {
@@ -466,11 +532,24 @@ async function submitNovoVideo(event) {
       showToast('Vídeo adicionado com sucesso!', 'success');
       closeModal();
       form.reset();
+      delete uploadedVideoUrls['modal-video'];
       delete uploadedImageUrls['modal-video'];
+      const infoEl = document.getElementById('video-upload-info');
+      if (infoEl) {
+        infoEl.innerHTML = '<i class="ph-bold ph-video-camera text-base text-red-600"></i> Nenhum arquivo selecionado ainda.';
+        infoEl.className = "mt-2 text-xs text-gray-500 flex items-center gap-1.5";
+      }
       loadAdminData();
+    } else {
+      showToast(json.message || 'Erro ao salvar vídeo.', 'error');
     }
   } catch (err) {
     showToast('Erro ao salvar vídeo.', 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnText;
+    }
   }
 }
 

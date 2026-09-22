@@ -558,20 +558,28 @@
             <form class="p-6 space-y-5" onsubmit="submitNovoVideo(event)">
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Título do Vídeo</label>
-                    <input type="text" placeholder="Ex: Sorteio Ao Vivo - Ação XRE" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" required>
+                    <input type="text" id="video-titulo" placeholder="Ex: Entrega do Jetta 2.0 - June" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900 text-sm" required>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-800 mb-2">Link do Vídeo (YouTube, Vimeo, Drive, etc)</label>
-                    <input type="url" placeholder="https://youtube.com/watch?v=..." class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" required>
+                    <label class="block text-sm font-bold text-gray-800 mb-1">Arquivo de Vídeo (Upload Direto)</label>
+                    <p class="text-xs text-gray-500 mb-2">Envie o arquivo MP4 ou vídeo do seu celular ou computador (formato vertical 1080x1920 recomendado).</p>
+                    <input type="file" id="video-file-input" accept="video/mp4,video/quicktime,video/*" onchange="handleVideoUpload(this, 'modal-video')" class="w-full p-2 border border-gray-300 rounded-xl text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 file:cursor-pointer cursor-pointer">
+                    <div id="video-upload-info" class="mt-2 text-xs text-gray-500 flex items-center gap-1.5">
+                        <i class="ph-bold ph-video-camera text-base text-red-600"></i> Nenhum arquivo selecionado ainda.
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-800 mb-2">Data da Publicação</label>
-                    <input type="date" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" required>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">Ou Link Externo (Opcional caso não envie arquivo)</label>
+                    <input type="url" id="video-url-input" placeholder="https://..." class="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none focus:border-brand-dark text-gray-700 text-xs">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-800 mb-2">Miniatura (Thumbnail do Vídeo)</label>
+                    <label class="block text-sm font-bold text-gray-800 mb-2">Data da Publicação / Entrega</label>
+                    <input type="date" id="video-data" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900 text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-800 mb-2">Miniatura (Opcional)</label>
                     <input type="file" accept="image/*" onchange="handleFileUpload(this, 'modal-video')" class="w-full p-2 border border-gray-300 rounded-xl text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-gray-100 file:text-gray-800 hover:file:bg-gray-200 file:cursor-pointer cursor-pointer">
-                    <p class="mt-2 text-xs text-gray-500">Imagem estática que aparece antes de o usuário clicar no play.</p>
+                    <p class="mt-2 text-xs text-gray-500">Se não anexar miniatura, o início do próprio vídeo será exibido.</p>
                 </div>
                 <div class="pt-4 mt-6 border-t border-gray-100 flex gap-3 justify-end">
                     <button type="button" onclick="closeModal()" class="px-5 py-3 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-bold transition-colors">Cancelar</button>

@@ -52,8 +52,11 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// Memory Storage for Uploads
-const upload = multer({ storage: multer.memoryStorage() });
+// Memory Storage for Uploads (suporte a arquivos e vídeos de até 100MB)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 100 * 1024 * 1024 }
+});
 
 // --- PUBLIC ENDPOINTS ---
 
@@ -132,22 +135,30 @@ app.get('/api/auth/verify', authenticateToken, (req, res) => {
 
 // --- UPLOAD ENDPOINT ---
 
-// POST /api/upload (Cloudinary com Fallback Base64)
+// POST /api/upload (Cloudinary com Fallback Local para Vídeos e Imagens)
 app.post('/api/upload', authenticateToken, upload.single('file'), async (req, res) => {
   try {
     if (!req.file && !req.body.base64) {
       return res.status(400).json({ success: false, message: 'Nenhum arquivo enviado.' });
     }
 
-    // Se Cloudinary estiver configurado
+    const isVideo = req.file && (
+      (req.file.mimetype && req.file.mimetype.startsWith('video/')) ||
+      /\.(mp4|mov|avi|webm|m4v)$/i.test(req.file.originalname || '')
+    );
+
+    // 1. Se Cloudinary estiver configurado
     if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
       const fileBuffer = req.file ? req.file.buffer : Buffer.from(req.body.base64.split(',')[1], 'base64');
       
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: 'caputo_acoes' },
+        { folder: 'caputo_acoes', resource_type: 'auto' },
         (error, result) => {
           if (error) {
             console.error('Erro no Cloudinary:', error);
+            if (isVideo && req.file) {
+              return saveVideoLocally(req.file, res);
+            }
             const base64Url = req.file ? `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}` : req.body.base64;
             return res.json({ success: true, url: base64Url, fallback: true });
           }
@@ -157,7 +168,12 @@ app.post('/api/upload', authenticateToken, upload.single('file'), async (req, re
       
       return uploadStream.end(fileBuffer);
     } else {
-      // Fallback: Data URL Base64
+      // 2. Modo Local (ou fallback)
+      if (isVideo && req.file) {
+        return saveVideoLocally(req.file, res);
+      }
+
+      // Imagens: Data URL Base64
       const mimeType = req.file ? req.file.mimetype : 'image/jpeg';
       const base64Content = req.file ? req.file.buffer.toString('base64') : req.body.base64;
       const dataUrl = req.file ? `data:${mimeType};base64,${base64Content}` : base64Content;
@@ -165,14 +181,36 @@ app.post('/api/upload', authenticateToken, upload.single('file'), async (req, re
       return res.json({
         success: true,
         url: dataUrl,
-        message: 'Upload simulado via Data URL (Configure o Cloudinary no .env para URLs permanentes)'
+        message: 'Upload realizado com sucesso.'
       });
     }
   } catch (err) {
     console.error('Erro no upload:', err);
-    res.status(500).json({ success: false, message: 'Falha no processamento da imagem.' });
+    res.status(500).json({ success: false, message: 'Falha no processamento do arquivo.' });
   }
 });
+
+// Helper para salvar vídeos localmente
+function saveVideoLocally(file, res) {
+  try {
+    const uploadDir = path.join(__dirname, '..', 'Sorteios', 'Finalizadas');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    const cleanName = (file.originalname || 'video.mp4').replace(/[^a-zA-Z0-9._-]/g, '_');
+    const fileName = `upload_${Date.now()}_${cleanName}`;
+    const filePath = path.join(uploadDir, fileName);
+    fs.writeFileSync(filePath, file.buffer);
+    return res.json({
+      success: true,
+      url: `/Sorteios/Finalizadas/${encodeURIComponent(fileName)}`,
+      message: 'Vídeo enviado e salvo com sucesso!'
+    });
+  } catch (err) {
+    console.error('Erro ao salvar vídeo no disco:', err);
+    return res.status(500).json({ success: false, message: 'Erro ao gravar vídeo no servidor.' });
+  }
+}
 
 // --- ADMIN CRUD ENDPOINTS ---
 

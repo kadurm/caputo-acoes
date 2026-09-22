@@ -103,14 +103,14 @@ function renderPageData(db) {
     tabVideosContainer.innerHTML = db.videos.map(v => {
       const isMp4 = v.videoUrl && v.videoUrl.toLowerCase().includes('.mp4');
       const mediaHtml = isMp4 ? `
-        <div class="aspect-video bg-black relative flex items-center justify-center">
-            <video controls preload="metadata" playsinline class="w-full h-full object-contain">
+        <div class="aspect-[9/16] bg-black relative flex items-center justify-center">
+            <video controls preload="metadata" playsinline class="w-full h-full object-cover">
                 <source src="${v.videoUrl}" type="video/mp4">
                 Seu navegador não suporta a tag de vídeo.
             </video>
         </div>
       ` : `
-        <a href="${v.videoUrl}" target="_blank" class="aspect-video bg-gray-900 relative flex items-center justify-center block">
+        <a href="${v.videoUrl}" target="_blank" class="aspect-[9/16] bg-gray-900 relative flex items-center justify-center block">
             <img src="${v.thumbnailUrl}" alt="${v.titulo}" class="absolute inset-0 w-full h-full object-cover opacity-60">
             <button class="relative z-10 w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 transition-transform">
                 <i class="ph-fill ph-play text-2xl"></i>

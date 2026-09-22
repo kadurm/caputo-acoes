@@ -232,14 +232,25 @@ function renderAdminDashboard(db) {
   // Render Grid: Vídeos
   const videosGrid = document.querySelector('#view-videos .grid');
   if (videosGrid && db.videos) {
-    videosGrid.innerHTML = db.videos.map(v => `
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-          <a href="${v.videoUrl}" target="_blank" class="aspect-video bg-gray-900 relative flex items-center justify-center group cursor-pointer block">
-              <img src="${v.thumbnailUrl}" class="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-50 transition-opacity">
-              <div class="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center relative z-10 shadow-lg">
-                  <i class="ph-fill ph-play text-white text-xl"></i>
-              </div>
-          </a>
+      const isMp4 = v.videoUrl && v.videoUrl.toLowerCase().includes('.mp4');
+      const mediaHtml = isMp4 ? `
+        <div class="aspect-[9/16] bg-black relative flex items-center justify-center">
+            <video controls preload="metadata" playsinline class="w-full h-full object-cover">
+                <source src="${v.videoUrl}" type="video/mp4">
+            </video>
+        </div>
+      ` : `
+        <a href="${v.videoUrl}" target="_blank" class="aspect-[9/16] bg-gray-900 relative flex items-center justify-center group cursor-pointer block">
+            <img src="${v.thumbnailUrl}" class="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-50 transition-opacity">
+            <div class="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center relative z-10 shadow-lg">
+                <i class="ph-fill ph-play text-white text-xl"></i>
+            </div>
+        </a>
+      `;
+
+      return `
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            ${mediaHtml}
           <div class="p-4">
               <h4 class="font-bold text-gray-900 line-clamp-2 leading-snug">${v.titulo}</h4>
               <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">

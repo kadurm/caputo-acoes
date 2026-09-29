@@ -159,7 +159,7 @@ function renderAdminDashboard(db) {
             <img src="${db.destaque.imagemUrl}" class="w-16 h-16 rounded-xl object-cover shadow-sm border border-gray-200">
             <div>
                 <h4 class="font-bold text-gray-900">${db.destaque.titulo}</h4>
-                <p class="text-sm text-gray-600">R$ ${db.destaque.precoCota} a cota • <span class="font-medium text-brand-action">${db.destaque.porcentagemVendido}% Vendido</span></p>
+                <p class="text-sm text-gray-600">R$ ${db.destaque.precoCota} a cota</p>
             </div>
         </div>
         <button onclick="openEditAcao('${db.destaque.id || 'destaque'}')" class="w-full sm:w-auto px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">

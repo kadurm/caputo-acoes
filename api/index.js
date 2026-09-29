@@ -802,14 +802,16 @@ app.put('/api/config', authenticateToken, async (req, res) => {
       cloudinaryUploadPreset: req.body.cloudinaryUploadPreset !== undefined ? req.body.cloudinaryUploadPreset.trim() : (db.config && db.config.cloudinaryUploadPreset) || ''
     };
 
-    // Sincronizar WhatsApp nas ações que possuem apenas o placeholder inicial de suporte (5500000000000)
+    // Sincronizar WhatsApp em todos os botões de ações (comprar números, participar, garantir números)
     if (newWhatsapp) {
-      if (db.destaque && (!db.destaque.linkCheckout || db.destaque.linkCheckout.includes('5500000000000'))) {
-        db.destaque.linkCheckout = newWhatsapp;
+      if (db.destaque) {
+        if (!db.destaque.linkCheckout || db.destaque.linkCheckout.includes('5500000000000') || db.destaque.linkCheckout.includes('wa.me') || db.destaque.linkCheckout.includes('whatsapp.com')) {
+          db.destaque.linkCheckout = newWhatsapp;
+        }
       }
       if (db.acoes && Array.isArray(db.acoes)) {
         db.acoes.forEach(a => {
-          if (!a.linkCheckout || a.linkCheckout.includes('5500000000000')) {
+          if (!a.linkCheckout || a.linkCheckout.includes('5500000000000') || a.linkCheckout.includes('wa.me') || a.linkCheckout.includes('whatsapp.com')) {
             a.linkCheckout = newWhatsapp;
           }
         });

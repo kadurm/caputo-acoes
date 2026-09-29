@@ -28,18 +28,31 @@ async function fetchPublicData() {
 }
 
 function renderPageData(db) {
-  // WhatsApp definido para suporte e atendimento (mesmo número para compra de números)
+  // WhatsApp definido em Configurações para compras, participação e atendimento
   const whatsappSuporte = (db.config && db.config.whatsappUrl && db.config.whatsappUrl.trim())
     ? db.config.whatsappUrl.trim()
     : 'https://wa.me/5500000000000';
 
-  // 1. Render Destaque (Flyer Principal)
+  // Helper para vincular o WhatsApp oficial das configurações a todos os botões de ação
+  function getWhatsAppActionLink(acao, fallbackWhatsapp, actionTitle) {
+    if (acao && acao.linkCheckout && acao.linkCheckout.trim() &&
+        !acao.linkCheckout.includes('5500000000000') &&
+        !acao.linkCheckout.includes('wa.me') &&
+        !acao.linkCheckout.includes('whatsapp.com')) {
+      return acao.linkCheckout.trim();
+    }
+    const baseLink = fallbackWhatsapp || 'https://wa.me/5500000000000';
+    if (actionTitle && baseLink.includes('wa.me') && !baseLink.includes('text=')) {
+      const sep = baseLink.includes('?') ? '&' : '?';
+      return `${baseLink}${sep}text=${encodeURIComponent(`Olá! Quero participar da ação: ${actionTitle}`)}`;
+    }
+    return baseLink;
+  }
+
+  // 1. Render Destaque (Flyer Principal) - Botão COMPRAR NÚMEROS
   if (db.destaque && db.destaque.titulo) {
     const destaqueSection = document.querySelector('main section:first-of-type');
-    // Em 'Comprar números' o botão redireciona para o número do WhatsApp definido para suporte
-    const linkComprar = (db.destaque.linkCheckout && !db.destaque.linkCheckout.includes('5500000000000'))
-      ? db.destaque.linkCheckout.trim()
-      : whatsappSuporte;
+    const linkComprar = getWhatsAppActionLink(db.destaque, whatsappSuporte, db.destaque.titulo);
 
     if (destaqueSection) {
       destaqueSection.innerHTML = `
@@ -65,11 +78,11 @@ function renderPageData(db) {
     // Fallback: se não renderizar destaque via JS, atualizar o botão existente
     const btnComprar = document.getElementById('btn-comprar-destaque');
     if (btnComprar && whatsappSuporte) {
-      btnComprar.href = whatsappSuporte;
+      btnComprar.href = getWhatsAppActionLink(null, whatsappSuporte, 'Nova Hilux');
     }
   }
 
-  // 2. Render Ações Ativas (Exclui ações relâmpago)
+  // 2. Render Ações Ativas - Botão PARTICIPAR AGORA
   const todasAcoes = db.acoes || [];
   const acoesAtivas = todasAcoes.filter(a => a.localExibicao !== 'Aba: Relâmpago' && a.localExibicao !== 'Aba: Encerradas');
   const tabAtivasContainer = document.querySelector('#tab-ativas .space-y-4');
@@ -77,9 +90,7 @@ function renderPageData(db) {
   if (tabAtivasContainer) {
     if (acoesAtivas.length > 0) {
       tabAtivasContainer.innerHTML = acoesAtivas.map(acao => {
-        const linkAcao = (acao.linkCheckout && !acao.linkCheckout.includes('5500000000000'))
-          ? acao.linkCheckout.trim()
-          : whatsappSuporte;
+        const linkAcao = getWhatsAppActionLink(acao, whatsappSuporte, acao.titulo);
 
         return `
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -110,7 +121,7 @@ function renderPageData(db) {
     }
   }
 
-  // 3. Render Ações Relâmpago (Bilhetes Premiados)
+  // 3. Render Ações Relâmpago (Bilhetes Premiados) - Botão GARANTIR NÚMEROS
   const acoesRelampago = [
     ...(db.relampagos || []),
     ...todasAcoes.filter(a => a.localExibicao === 'Aba: Relâmpago')
@@ -120,9 +131,7 @@ function renderPageData(db) {
   if (tabRelampagoContainer) {
     if (acoesRelampago.length > 0) {
       tabRelampagoContainer.innerHTML = acoesRelampago.map(acao => {
-        const linkAcao = (acao.linkCheckout && !acao.linkCheckout.includes('5500000000000'))
-          ? acao.linkCheckout.trim()
-          : whatsappSuporte;
+        const linkAcao = getWhatsAppActionLink(acao, whatsappSuporte, acao.titulo);
 
         const tagVinculada = acao.acaoVinculada
           ? `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded-md mt-1 mb-2 border border-amber-200/50">

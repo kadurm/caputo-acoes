@@ -82,6 +82,10 @@ app.get('/api/public/data', async (req, res) => {
     if (db && db.videos) {
       db.videos = sortVideosChronological(db.videos);
     }
+    res.set({
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Pragma': 'no-cache'
+    });
     res.json({
       success: true,
       data: db
@@ -748,6 +752,10 @@ app.delete('/api/financeiro/:id', authenticateToken, async (req, res) => {
 app.get('/api/config', async (req, res) => {
   try {
     const db = await getAppData();
+    res.set({
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Pragma': 'no-cache'
+    });
     res.json({ success: true, data: db.config || {} });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Erro ao buscar configurações.' });
@@ -757,24 +765,51 @@ app.get('/api/config', async (req, res) => {
 app.put('/api/config', authenticateToken, async (req, res) => {
   try {
     const db = await getAppData();
-    const newWhatsapp = req.body.whatsappUrl !== undefined ? req.body.whatsappUrl.trim() : (db.config && db.config.whatsappUrl) || '';
+    let newWhatsapp = req.body.whatsappUrl !== undefined ? req.body.whatsappUrl.trim() : (db.config && db.config.whatsappUrl) || '';
+    let newInstagram = req.body.instagramUrl !== undefined ? req.body.instagramUrl.trim() : (db.config && db.config.instagramUrl) || '';
+
+    // Normalização no backend para garantir consistência
+    if (newWhatsapp) {
+      if (!newWhatsapp.startsWith('http://') && !newWhatsapp.startsWith('https://')) {
+        const digits = newWhatsapp.replace(/\D/g, '');
+        if (digits.length >= 10 && digits.length <= 11) {
+          newWhatsapp = `https://wa.me/55${digits}`;
+        } else if (digits.length >= 12) {
+          newWhatsapp = `https://wa.me/${digits}`;
+        } else if (newWhatsapp.includes('wa.me')) {
+          newWhatsapp = `https://${newWhatsapp}`;
+        }
+      }
+    }
+
+    if (newInstagram) {
+      if (newInstagram.startsWith('@')) {
+        newInstagram = `https://instagram.com/${newInstagram.slice(1)}`;
+      } else if (!newInstagram.startsWith('http://') && !newInstagram.startsWith('https://')) {
+        if (newInstagram.includes('instagram.com')) {
+          newInstagram = `https://${newInstagram}`;
+        } else {
+          newInstagram = `https://instagram.com/${newInstagram}`;
+        }
+      }
+    }
 
     db.config = {
       ...(db.config || {}),
       whatsappUrl: newWhatsapp,
-      instagramUrl: req.body.instagramUrl !== undefined ? req.body.instagramUrl.trim() : (db.config && db.config.instagramUrl) || '',
+      instagramUrl: newInstagram,
       cloudinaryCloudName: req.body.cloudinaryCloudName !== undefined ? req.body.cloudinaryCloudName.trim() : (db.config && db.config.cloudinaryCloudName) || '',
       cloudinaryUploadPreset: req.body.cloudinaryUploadPreset !== undefined ? req.body.cloudinaryUploadPreset.trim() : (db.config && db.config.cloudinaryUploadPreset) || ''
     };
 
-    // Sincronizar WhatsApp nas ações que usam link padrão de suporte
+    // Sincronizar WhatsApp nas ações que possuem apenas o placeholder inicial de suporte (5500000000000)
     if (newWhatsapp) {
-      if (db.destaque && (!db.destaque.linkCheckout || db.destaque.linkCheckout.includes('5500000000000') || db.destaque.linkCheckout.includes('wa.me'))) {
+      if (db.destaque && (!db.destaque.linkCheckout || db.destaque.linkCheckout.includes('5500000000000'))) {
         db.destaque.linkCheckout = newWhatsapp;
       }
       if (db.acoes && Array.isArray(db.acoes)) {
         db.acoes.forEach(a => {
-          if (!a.linkCheckout || a.linkCheckout.includes('5500000000000') || a.linkCheckout.includes('wa.me')) {
+          if (!a.linkCheckout || a.linkCheckout.includes('5500000000000')) {
             a.linkCheckout = newWhatsapp;
           }
         });
@@ -782,8 +817,13 @@ app.put('/api/config', authenticateToken, async (req, res) => {
     }
 
     await saveAppData(db);
+    res.set({
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Pragma': 'no-cache'
+    });
     res.json({ success: true, message: 'Configurações salvas com sucesso!', data: db.config });
   } catch (err) {
+    console.error('Erro ao salvar configurações:', err);
     res.status(500).json({ success: false, message: 'Erro ao salvar configurações.' });
   }
 });

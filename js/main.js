@@ -13,7 +13,10 @@ async function recordPageView() {
 
 async function fetchPublicData() {
   try {
-    const res = await fetch('/api/public/data');
+    const res = await fetch(`/api/public/data?t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+    });
     if (!res.ok) throw new Error('Falha ao carregar dados da API');
     const json = await res.json();
     if (json.success && json.data) {
@@ -225,13 +228,13 @@ function renderPageData(db) {
 
   // 6. Update Contact Links (WhatsApp e Instagram)
   if (db.config) {
-    const whatsappBtn = document.querySelector('footer a[href*="wa.me"], div.fixed.bottom-0 a[href*="wa.me"]');
+    const whatsappBtn = document.getElementById('btn-contato-whatsapp') || document.querySelector('a[href*="wa.me"]');
     if (whatsappBtn && db.config.whatsappUrl) {
-      whatsappBtn.href = db.config.whatsappUrl;
+      whatsappBtn.href = db.config.whatsappUrl.trim();
     }
-    const instagramBtn = document.querySelector('footer a[href*="instagram.com"], div.fixed.bottom-0 a[href*="instagram.com"]');
+    const instagramBtn = document.getElementById('btn-contato-instagram') || document.querySelector('a[href*="instagram.com"]');
     if (instagramBtn && db.config.instagramUrl) {
-      instagramBtn.href = db.config.instagramUrl;
+      instagramBtn.href = db.config.instagramUrl.trim();
     }
   }
 }

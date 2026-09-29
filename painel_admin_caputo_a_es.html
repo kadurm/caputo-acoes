@@ -520,29 +520,30 @@
                     <div class="space-y-5">
                         <h3 class="text-sm font-bold uppercase tracking-wider text-gray-500 border-b border-gray-100 pb-2">Contatos & Redes</h3>
                         <div>
-                            <label class="block text-sm font-bold text-gray-800 mb-2">Link do WhatsApp (Suporte)</label>
+                            <label class="block text-sm font-bold text-gray-800 mb-2">WhatsApp de Suporte / Atendimento</label>
                             <div class="flex rounded-xl shadow-sm border border-gray-300 overflow-hidden focus-within:border-brand-dark focus-within:ring-1 focus-within:ring-brand-dark transition-colors">
                                 <span class="inline-flex items-center px-4 bg-gray-50 text-gray-500 border-r border-gray-300">
                                     <i class="ph-fill ph-whatsapp-logo text-xl text-green-500"></i>
                                 </span>
-                                <input type="url" id="config-whatsapp" value="https://wa.me/5500000000000" class="flex-1 block w-full bg-white px-4 py-3 text-gray-900 outline-none sm:text-sm" required>
+                                <input type="text" id="config-whatsapp" placeholder="Ex: (32) 99999-9999 ou https://wa.me/55..." class="flex-1 block w-full bg-white px-4 py-3 text-gray-900 outline-none sm:text-sm" required>
                             </div>
-                            <p class="mt-2 text-xs text-gray-500">Use o link completo gerado para o número de atendimento.</p>
+                            <p class="mt-2 text-xs text-gray-500">Aceita número com DDD (ex: 32999999999) ou o link completo do WhatsApp.</p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-bold text-gray-800 mb-2">Link do Instagram</label>
+                            <label class="block text-sm font-bold text-gray-800 mb-2">Instagram Oficial</label>
                             <div class="flex rounded-xl shadow-sm border border-gray-300 overflow-hidden focus-within:border-brand-dark focus-within:ring-1 focus-within:ring-brand-dark transition-colors">
                                 <span class="inline-flex items-center px-4 bg-gray-50 text-gray-500 border-r border-gray-300">
                                     <i class="ph-fill ph-instagram-logo text-xl text-pink-600"></i>
                                 </span>
-                                <input type="url" id="config-instagram" value="https://instagram.com/caputoacoes" class="flex-1 block w-full bg-white px-4 py-3 text-gray-900 outline-none sm:text-sm" required>
+                                <input type="text" id="config-instagram" placeholder="Ex: @caputoacoes ou https://instagram.com/caputoacoes" class="flex-1 block w-full bg-white px-4 py-3 text-gray-900 outline-none sm:text-sm" required>
                             </div>
+                            <p class="mt-2 text-xs text-gray-500">Aceita o @ (ex: @caputoacoes) ou o link completo do perfil.</p>
                         </div>
                     </div>
 
                     <div class="pt-6 mt-6 border-t border-gray-100 flex justify-end">
-                        <button type="submit" class="bg-brand-dark hover:bg-black text-white px-6 py-3 rounded-xl font-bold shadow-md transition-transform active:scale-95 flex items-center gap-2">
+                        <button type="submit" id="btn-salvar-config" class="bg-brand-dark hover:bg-black text-white px-6 py-3 rounded-xl font-bold shadow-md transition-transform active:scale-95 flex items-center gap-2">
                             <i class="ph-bold ph-check"></i> Salvar Alterações
                         </button>
                     </div>
@@ -989,6 +990,6 @@
         }
     </script>
     <!-- JAVASCRIPT ADMIN CONECTADO À API -->
-    <script src="/js/admin.js?v=20260922_05"></script>
+    <script src="js/admin.js?v=20260929_02"></script>
 </body>
 </html>

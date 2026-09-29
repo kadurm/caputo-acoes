@@ -114,7 +114,10 @@ function logoutAdmin() {
 
 async function loadAdminData() {
   try {
-    const res = await fetch('/api/public/data');
+    const res = await fetch(`/api/public/data?t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+    });
     const json = await res.json();
     if (json.success && json.data) {
       renderAdminDashboard(json.data);
@@ -1003,20 +1006,69 @@ async function deleteVideoItem(id) {
 // API CRUD Call: Configurações
 async function submitConfiguracoes(event) {
   event.preventDefault();
+
+  authToken = authToken || localStorage.getItem('caputo_token');
+  if (!authToken) {
+    showToast('Sessão expirada. Por favor, faça login novamente.', 'error');
+    showLoginScreen();
+    return;
+  }
+
   const whatsappInput = document.getElementById('config-whatsapp');
   const instagramInput = document.getElementById('config-instagram');
   const cloudNameInput = document.getElementById('config-cloudinary-cloudname');
   const presetInput = document.getElementById('config-cloudinary-preset');
+  const submitBtn = document.getElementById('btn-salvar-config');
+
+  let rawWhatsapp = whatsappInput ? whatsappInput.value.trim() : '';
+  let rawInstagram = instagramInput ? instagramInput.value.trim() : '';
+
+  // 1. Normalização Inteligente do WhatsApp
+  let formattedWhatsapp = rawWhatsapp;
+  if (formattedWhatsapp) {
+    if (!formattedWhatsapp.startsWith('http://') && !formattedWhatsapp.startsWith('https://')) {
+      const digits = formattedWhatsapp.replace(/\D/g, '');
+      if (digits.length >= 10 && digits.length <= 11) {
+        formattedWhatsapp = `https://wa.me/55${digits}`;
+      } else if (digits.length >= 12) {
+        formattedWhatsapp = `https://wa.me/${digits}`;
+      } else if (formattedWhatsapp.includes('wa.me')) {
+        formattedWhatsapp = `https://${formattedWhatsapp}`;
+      }
+    }
+    if (whatsappInput) whatsappInput.value = formattedWhatsapp;
+  }
+
+  // 2. Normalização Inteligente do Instagram
+  let formattedInstagram = rawInstagram;
+  if (formattedInstagram) {
+    if (formattedInstagram.startsWith('@')) {
+      formattedInstagram = `https://instagram.com/${formattedInstagram.slice(1)}`;
+    } else if (!formattedInstagram.startsWith('http://') && !formattedInstagram.startsWith('https://')) {
+      if (formattedInstagram.includes('instagram.com')) {
+        formattedInstagram = `https://${formattedInstagram}`;
+      } else {
+        formattedInstagram = `https://instagram.com/${formattedInstagram}`;
+      }
+    }
+    if (instagramInput) instagramInput.value = formattedInstagram;
+  }
 
   const payload = {
-    whatsappUrl: whatsappInput ? whatsappInput.value.trim() : '',
-    instagramUrl: instagramInput ? instagramInput.value.trim() : ''
+    whatsappUrl: formattedWhatsapp,
+    instagramUrl: formattedInstagram
   };
   if (cloudNameInput && cloudNameInput.value) {
     payload.cloudinaryCloudName = cloudNameInput.value.trim();
   }
   if (presetInput && presetInput.value) {
     payload.cloudinaryUploadPreset = presetInput.value.trim();
+  }
+
+  const originalBtnHtml = submitBtn ? submitBtn.innerHTML : 'Salvar Alterações';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-lg"></i> Salvando...';
   }
 
   try {
@@ -1031,12 +1083,23 @@ async function submitConfiguracoes(event) {
     const json = await res.json();
     if (json.success) {
       showToast('Configurações salvas com sucesso!', 'success');
+      if (json.data) {
+        if (window.adminDataCache) window.adminDataCache.config = json.data;
+        if (whatsappInput && json.data.whatsappUrl) whatsappInput.value = json.data.whatsappUrl;
+        if (instagramInput && json.data.instagramUrl) instagramInput.value = json.data.instagramUrl;
+      }
       loadAdminData();
     } else {
       showToast(json.message || 'Erro ao salvar configurações.', 'error');
     }
   } catch (err) {
+    console.error('Erro ao salvar configurações:', err);
     showToast('Erro ao salvar configurações.', 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnHtml;
+    }
   }
 }
 

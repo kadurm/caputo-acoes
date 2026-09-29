@@ -216,9 +216,14 @@ function renderAdminDashboard(db) {
                 <p class="text-sm text-gray-500">Cota: R$ ${acao.precoCota}</p>
             </td>
             <td class="p-4">
-                <span class="px-3 py-1 bg-green-100 text-green-800 border border-green-200 text-xs font-bold rounded-lg flex w-max items-center gap-1">
-                    <i class="ph-fill ph-check-circle"></i> ${acao.localExibicao || 'Aba Ativas'}
-                </span>
+                ${acao.localExibicao === 'Aba: Relâmpago'
+                  ? `<span class="px-3 py-1 bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold rounded-lg flex w-max items-center gap-1">
+                       <i class="ph-fill ph-lightning text-amber-600"></i> Aba Relâmpago
+                     </span>`
+                  : `<span class="px-3 py-1 bg-green-100 text-green-800 border border-green-200 text-xs font-bold rounded-lg flex w-max items-center gap-1">
+                       <i class="ph-fill ph-check-circle"></i> ${acao.localExibicao || 'Aba Ativas'}
+                     </span>`
+                }
             </td>
             <td class="p-4 text-right">
                 <div class="flex justify-end gap-2">
@@ -617,7 +622,14 @@ function openEditAcao(id) {
   const precoInput = document.getElementById('acao-preco');
   if (precoInput) precoInput.value = acao.precoCota || '';
   const localSelect = document.getElementById('acao-local');
-  if (localSelect) localSelect.value = localExibicao;
+  if (localSelect) {
+    localSelect.value = localExibicao;
+    if (typeof toggleAcaoVinculadaField === 'function') {
+      toggleAcaoVinculadaField(localExibicao);
+    }
+  }
+  const vinculadaInput = document.getElementById('acao-vinculada');
+  if (vinculadaInput) vinculadaInput.value = acao.acaoVinculada || '';
   const checkoutInput = document.getElementById('acao-checkout');
   if (checkoutInput) checkoutInput.value = acao.linkCheckout || '';
 
@@ -732,11 +744,13 @@ async function submitNovaAcao(event) {
   const localEl = document.getElementById('acao-local') || event.target.querySelector('select');
   const porcentagemEl = document.getElementById('acao-porcentagem');
   const checkoutEl = document.getElementById('acao-checkout') || event.target.querySelector('input[type="url"]');
+  const vinculadaEl = document.getElementById('acao-vinculada');
 
   const payload = {
     titulo: tituloEl ? tituloEl.value.trim() : '',
     precoCota: precoEl ? precoEl.value.trim() : '',
     localExibicao: localEl ? localEl.value : 'Aba: Ativas',
+    acaoVinculada: vinculadaEl ? vinculadaEl.value.trim() : '',
     porcentagemVendido: porcentagemEl ? (Number(porcentagemEl.value) || 0) : (existingItem.porcentagemVendido || 0),
     linkCheckout: checkoutEl ? checkoutEl.value.trim() : '',
     imagemUrl: imagemUrl
@@ -771,10 +785,13 @@ async function submitNovaAcao(event) {
       const previewContainer = document.getElementById('acao-preview-container');
       const fileText = document.getElementById('acao-file-text');
       const urlInputReset = document.getElementById('acao-imagem-url');
+      const vinculadaReset = document.getElementById('acao-vinculada');
       if (imgPreview) imgPreview.src = '';
       if (previewContainer) previewContainer.classList.add('hidden');
       if (fileText) fileText.textContent = 'Clique para selecionar imagem';
       if (urlInputReset) urlInputReset.value = '';
+      if (vinculadaReset) vinculadaReset.value = '';
+      if (typeof toggleAcaoVinculadaField === 'function') toggleAcaoVinculadaField('');
       currentEditState.acao = null;
       loadAdminData();
     } else {

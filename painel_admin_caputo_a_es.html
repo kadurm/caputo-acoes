@@ -604,12 +604,22 @@
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-gray-800 mb-2">Local de Exibição</label>
-                        <select id="acao-local" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900 bg-white">
+                        <select id="acao-local" onchange="toggleAcaoVinculadaField(this.value)" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900 bg-white">
                             <option value="Destaque Principal (Banner Topo)">Destaque Principal (Banner Topo)</option>
                             <option value="Aba: Ativas">Aba: Ativas</option>
+                            <option value="Aba: Relâmpago">⚡ Aba: Relâmpago (Ação Relâmpago)</option>
                             <option value="Aba: Encerradas">Aba: Encerradas</option>
                         </select>
                     </div>
+                </div>
+
+                <!-- Campo exclusivo para Ação Relâmpago -->
+                <div id="campo-acao-vinculada" class="hidden">
+                    <label class="block text-sm font-bold text-amber-800 mb-2 flex items-center gap-1.5">
+                        <i class="ph-fill ph-lightning text-amber-600"></i> Ação Principal Vinculada (Bilhete Premiado)
+                    </label>
+                    <input type="text" id="acao-vinculada" placeholder="Ex: Vinculada à Nova Hilux 4x4" class="w-full rounded-xl border border-amber-300 bg-amber-50/30 px-4 py-3 outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 text-gray-900 text-sm">
+                    <p class="mt-1.5 text-xs text-gray-500">Identifica para os clientes qual campanha principal contempla este prêmio relâmpago.</p>
                 </div>
                 
                 <div>
@@ -799,6 +809,14 @@
             }
         }
 
+        function toggleAcaoVinculadaField(val) {
+            const el = document.getElementById('campo-acao-vinculada');
+            if (el) {
+                if (val === 'Aba: Relâmpago') el.classList.remove('hidden');
+                else el.classList.add('hidden');
+            }
+        }
+
         // Modal Logic
         const modalOverlay = document.getElementById('modal-overlay');
         
@@ -828,9 +846,13 @@
                     const previewContainer = document.getElementById('acao-preview-container');
                     const imgPreview = document.getElementById('acao-img-preview');
                     const urlInput = document.getElementById('acao-imagem-url');
+                    const vinculadaInput = document.getElementById('acao-vinculada');
+                    const campoVinculada = document.getElementById('campo-acao-vinculada');
                     if (imgPreview) imgPreview.src = '';
                     if (previewContainer) previewContainer.classList.add('hidden');
                     if (urlInput) urlInput.value = '';
+                    if (vinculadaInput) vinculadaInput.value = '';
+                    if (campoVinculada) campoVinculada.classList.add('hidden');
                     if (typeof uploadedImageUrls !== 'undefined') delete uploadedImageUrls['modal-acao'];
                 } else if (modalId === 'modal-video') {
                     const idInput = document.getElementById('video-id');

@@ -66,38 +66,105 @@ function renderPageData(db) {
     }
   }
 
-  // 2. Render Ações Ativas
+  // 2. Render Ações Ativas (Exclui ações relâmpago)
+  const todasAcoes = db.acoes || [];
+  const acoesAtivas = todasAcoes.filter(a => a.localExibicao !== 'Aba: Relâmpago' && a.localExibicao !== 'Aba: Encerradas');
   const tabAtivasContainer = document.querySelector('#tab-ativas .space-y-4');
-  if (tabAtivasContainer && db.acoes && db.acoes.length > 0) {
-    tabAtivasContainer.innerHTML = db.acoes.map(acao => {
-      const linkAcao = (acao.linkCheckout && !acao.linkCheckout.includes('5500000000000'))
-        ? acao.linkCheckout.trim()
-        : whatsappSuporte;
+  
+  if (tabAtivasContainer) {
+    if (acoesAtivas.length > 0) {
+      tabAtivasContainer.innerHTML = acoesAtivas.map(acao => {
+        const linkAcao = (acao.linkCheckout && !acao.linkCheckout.includes('5500000000000'))
+          ? acao.linkCheckout.trim()
+          : whatsappSuporte;
 
-      return `
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-          <div class="flex p-3 gap-4">
-              <div class="w-24 h-24 rounded-xl bg-gray-200 flex-shrink-0 overflow-hidden">
-                  <img src="${acao.imagemUrl}" alt="${acao.titulo}" class="w-full h-full object-cover">
-              </div>
-              <div class="flex flex-col justify-center flex-1">
-                  <span class="text-[10px] font-bold text-brand-action uppercase tracking-wider mb-1">${acao.porcentagemVendido}% Vendido</span>
-                  <h4 class="font-bold text-gray-900 leading-tight mb-1">${acao.titulo}</h4>
-                  <p class="text-xs text-gray-500 mb-2">Por apenas R$ ${acao.precoCota}</p>
-                  
-                  <div class="w-full bg-gray-100 rounded-full h-2 mb-2">
-                      <div class="bg-brand-action h-2 rounded-full" style="width: ${acao.porcentagemVendido}%"></div>
-                  </div>
-              </div>
-          </div>
-          <div class="p-3 bg-gray-50 border-t border-gray-100">
-              <a href="${linkAcao}" target="_blank" class="w-full bg-brand-dark text-white font-bold py-2.5 rounded-lg text-sm shadow flex items-center justify-center gap-2">
-                  PARTICIPAR AGORA <i class="ph-bold ph-arrow-right"></i>
-              </a>
-          </div>
-      </div>
-    `;
-    }).join('');
+        return `
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="flex p-3 gap-4">
+                <div class="w-24 h-24 rounded-xl bg-gray-200 flex-shrink-0 overflow-hidden">
+                    <img src="${acao.imagemUrl}" alt="${acao.titulo}" class="w-full h-full object-cover">
+                </div>
+                <div class="flex flex-col justify-center flex-1">
+                    <span class="text-[10px] font-bold text-green-700 uppercase tracking-wider mb-1">Cotas Disponíveis</span>
+                    <h4 class="font-bold text-gray-900 leading-tight mb-1">${acao.titulo}</h4>
+                    <p class="text-xs text-gray-500 mb-2">Por apenas R$ ${acao.precoCota}</p>
+                </div>
+            </div>
+            <div class="p-3 bg-gray-50 border-t border-gray-100">
+                <a href="${linkAcao}" target="_blank" class="w-full bg-brand-dark hover:bg-black text-white font-bold py-2.5 rounded-lg text-sm shadow flex items-center justify-center gap-2 transition-colors">
+                    PARTICIPAR AGORA <i class="ph-bold ph-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+      `;
+      }).join('');
+    } else {
+      tabAtivasContainer.innerHTML = `
+        <div class="bg-white rounded-2xl p-8 text-center border border-gray-200 shadow-sm">
+            <p class="text-sm text-gray-500">Nenhuma ação disponível no momento.</p>
+        </div>
+      `;
+    }
+  }
+
+  // 3. Render Ações Relâmpago (Bilhetes Premiados)
+  const acoesRelampago = [
+    ...(db.relampagos || []),
+    ...todasAcoes.filter(a => a.localExibicao === 'Aba: Relâmpago')
+  ];
+  const tabRelampagoContainer = document.getElementById('lista-acoes-relampago');
+
+  if (tabRelampagoContainer) {
+    if (acoesRelampago.length > 0) {
+      tabRelampagoContainer.innerHTML = acoesRelampago.map(acao => {
+        const linkAcao = (acao.linkCheckout && !acao.linkCheckout.includes('5500000000000'))
+          ? acao.linkCheckout.trim()
+          : whatsappSuporte;
+
+        const tagVinculada = acao.acaoVinculada
+          ? `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded-md mt-1 mb-2 border border-amber-200/50">
+               <i class="ph-bold ph-link text-xs text-amber-700"></i> ${acao.acaoVinculada}
+             </span>`
+          : `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded-md mt-1 mb-2 border border-amber-200/50">
+               <i class="ph-fill ph-lightning text-xs text-amber-600"></i> Bilhete Premiado
+             </span>`;
+
+        return `
+        <div class="bg-white rounded-2xl shadow-sm border border-amber-200/70 overflow-hidden hover:shadow-md transition-shadow">
+            <div class="flex p-3 gap-4">
+                <div class="w-24 h-24 rounded-xl bg-amber-50 flex-shrink-0 overflow-hidden border border-amber-100">
+                    <img src="${acao.imagemUrl}" alt="${acao.titulo}" class="w-full h-full object-cover">
+                </div>
+                <div class="flex flex-col justify-center flex-1">
+                    <div class="flex items-center gap-1.5 mb-0.5">
+                        <span class="bg-amber-500 text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                            <i class="ph-fill ph-lightning"></i> Relâmpago
+                        </span>
+                    </div>
+                    <h4 class="font-bold text-gray-900 leading-tight mb-0.5">${acao.titulo}</h4>
+                    ${tagVinculada}
+                    <p class="text-xs font-bold text-gray-700">Cota: R$ ${acao.precoCota}</p>
+                </div>
+            </div>
+            <div class="p-3 bg-amber-50/40 border-t border-amber-100 flex gap-2">
+                <a href="${linkAcao}" target="_blank" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl text-sm shadow-md flex items-center justify-center gap-2 transition-colors">
+                    <i class="ph-fill ph-lightning text-lg"></i> GARANTIR NÚMEROS
+                </a>
+            </div>
+        </div>
+      `;
+      }).join('');
+    } else {
+      tabRelampagoContainer.innerHTML = `
+        <div class="bg-white rounded-2xl p-8 text-center border border-gray-200 shadow-sm">
+            <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mx-auto mb-3 text-2xl">
+                <i class="ph-fill ph-lightning"></i>
+            </div>
+            <h4 class="font-bold text-gray-800 text-base mb-1">Nenhuma Ação Relâmpago ativa no momento</h4>
+            <p class="text-xs text-gray-500 max-w-xs mx-auto">Novas ações relâmpago e bilhetes premiados são lançados a qualquer momento. Acompanhe nossas redes!</p>
+        </div>
+      `;
+    }
   }
 
 

@@ -107,14 +107,10 @@
     <div id="login-screen" class="fixed inset-0 bg-gray-900/90 backdrop-blur-md z-[300] flex items-center justify-center p-4 py-8 pt-[max(2rem,env(safe-area-inset-top))] pb-[max(2rem,calc(env(safe-area-inset-bottom)+1rem))] overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full border border-gray-100">
             <div class="flex flex-col items-center justify-center select-none mb-6">
-                <div class="relative flex items-center justify-center h-16 w-16 mb-1">
-                    <span class="font-serif text-[4.5rem] leading-none text-black absolute -ml-4">C</span>
-                    <span class="font-serif text-[4.5rem] leading-none text-black absolute ml-4 italic">A</span>
-                </div>
-                <h1 class="font-serif text-3xl tracking-[0.25em] text-black mt-3 ml-2">CAPUTO</h1>
-                <div class="flex items-center gap-3 mt-1 w-full justify-center opacity-80">
+                <img src="images/logo_caputo_dark.png" alt="Caputo Ações" class="h-16 w-auto object-contain select-none mb-3">
+                <div class="flex items-center gap-3 w-full justify-center opacity-80">
                     <div class="h-[1px] w-12 bg-black"></div>
-                    <h2 class="font-sans text-xs font-bold tracking-[0.3em] text-black">ADMIN LOGIN</h2>
+                    <h2 class="font-sans text-xs font-bold tracking-[0.3em] text-black uppercase">ADMIN LOGIN</h2>
                     <div class="h-[1px] w-12 bg-black"></div>
                 </div>
             </div>
@@ -145,18 +141,14 @@
     <!-- SIDEBAR -->
     <aside id="sidebar" class="bg-white border-r border-gray-200 w-64 flex-shrink-0 fixed md:static inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-50 flex flex-col h-full shadow-2xl md:shadow-none">
         
-        <!-- Logo Area (Strictly Black & White) -->
-        <div class="p-6 flex items-center justify-center border-b border-gray-100">
-            <div class="flex flex-col items-center justify-center select-none scale-[0.8] transform origin-center">
-                <div class="relative flex items-center justify-center h-16 w-16 mb-1">
-                    <span class="font-serif text-[4.5rem] leading-none text-black absolute -ml-4">C</span>
-                    <span class="font-serif text-[4.5rem] leading-none text-black absolute ml-4 italic">A</span>
-                </div>
-                <h1 class="font-serif text-3xl tracking-[0.25em] text-black mt-3 ml-2">CAPUTO</h1>
-                <div class="flex items-center gap-3 mt-1 w-full justify-center opacity-80">
-                    <div class="h-[1px] w-12 bg-black"></div>
-                    <h2 class="font-sans text-xs font-bold tracking-[0.3em] text-black">ADMIN</h2>
-                    <div class="h-[1px] w-12 bg-black"></div>
+        <!-- Logo Area -->
+        <div class="p-5 flex items-center justify-center border-b border-gray-100 relative">
+            <div class="flex flex-col items-center justify-center select-none">
+                <img src="images/logo_caputo_dark.png" alt="Caputo Ações" class="h-12 w-auto object-contain select-none mb-1.5">
+                <div class="flex items-center gap-2 w-full justify-center opacity-80">
+                    <div class="h-[1px] w-8 bg-black"></div>
+                    <h2 class="font-sans text-[10px] font-bold tracking-[0.3em] text-black uppercase">ADMIN</h2>
+                    <div class="h-[1px] w-8 bg-black"></div>
                 </div>
             </div>
             <!-- Mobile close button -->
@@ -428,7 +420,6 @@
                                 <tr class="bg-gray-50 border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wider font-bold">
                                     <th class="p-4">Capa</th>
                                     <th class="p-4">Prêmio / Detalhes</th>
-                                    <th class="p-4">Progresso</th>
                                     <th class="p-4">Status / Local</th>
                                     <th class="p-4 text-right">Opções</th>
                                 </tr>
@@ -442,12 +433,6 @@
                                     <td class="p-4">
                                         <p class="font-bold text-gray-900">NOVA HILUX 4x4 + R$ 20 MIL</p>
                                         <p class="text-sm text-gray-500">Cota: R$ 0,50</p>
-                                    </td>
-                                    <td class="p-4 w-48">
-                                        <div class="w-full bg-gray-200 rounded-full h-2 mb-1 overflow-hidden">
-                                            <div class="bg-brand-action h-2 rounded-full" style="width: 85%"></div>
-                                        </div>
-                                        <span class="text-xs font-semibold text-gray-600">85% Vendido</span>
                                     </td>
                                     <td class="p-4">
                                         <span class="px-3 py-1 bg-yellow-100 text-yellow-800 border border-yellow-200 text-xs font-bold rounded-lg flex w-max items-center gap-1">
@@ -469,12 +454,6 @@
                                     <td class="p-4">
                                         <p class="font-bold text-gray-900">iPhone 15 Pro Max 256GB</p>
                                         <p class="text-sm text-gray-500">Cota: R$ 0,10</p>
-                                    </td>
-                                    <td class="p-4 w-48">
-                                        <div class="w-full bg-gray-200 rounded-full h-2 mb-1 overflow-hidden">
-                                            <div class="bg-brand-action h-2 rounded-full" style="width: 70%"></div>
-                                        </div>
-                                        <span class="text-xs font-semibold text-gray-600">70% Vendido</span>
                                     </td>
                                     <td class="p-4">
                                         <span class="px-3 py-1 bg-green-100 text-green-800 border border-green-200 text-xs font-bold rounded-lg flex w-max items-center gap-1">
@@ -586,17 +565,30 @@
                 <input type="hidden" id="acao-id" value="">
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Imagem / Flyer (Capa)</label>
-                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:bg-gray-50 hover:border-gray-400 cursor-pointer transition-colors group">
-                        <div class="space-y-2 text-center">
-                            <i class="ph-fill ph-image text-4xl text-gray-300 group-hover:text-gray-400 mx-auto transition-colors"></i>
-                            <div class="flex text-sm text-gray-600 justify-center">
-                                <span class="relative font-bold text-brand-dark hover:underline">
-                                    <span id="acao-file-text">Clique para selecionar imagem</span>
-                                    <input type="file" id="acao-file-input" class="sr-only" accept="image/*" onchange="handleFileUpload(this, 'modal-acao')">
-                                </span>
+                    <label for="acao-file-input" class="mt-1 flex flex-col items-center justify-center p-5 border-2 border-gray-300 border-dashed rounded-xl hover:bg-gray-50 hover:border-brand-dark cursor-pointer transition-colors group relative overflow-hidden bg-gray-50/50">
+                        <input type="file" id="acao-file-input" class="hidden" accept="image/*" onchange="handleFileUpload(this, 'modal-acao')">
+                        
+                        <!-- Image Preview (Shown when image exists or is selected) -->
+                        <div id="acao-preview-container" class="hidden mb-3 relative group/preview">
+                            <img id="acao-img-preview" src="" alt="Prévia da Ação" class="w-32 h-36 object-cover rounded-xl border border-gray-200 shadow-md">
+                            <div class="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover/preview:opacity-100 flex items-center justify-center text-white text-xs font-bold transition-opacity">
+                                <i class="ph-bold ph-pencil mr-1"></i> Trocar
                             </div>
-                            <p class="text-xs text-gray-400">Proporção ideal: 4:5 (Vertical) • PNG ou JPG</p>
                         </div>
+
+                        <!-- Upload Icon & Instruction -->
+                        <div id="acao-upload-placeholder" class="space-y-1.5 text-center">
+                            <i class="ph-fill ph-cloud-arrow-up text-4xl text-gray-400 group-hover:text-brand-dark mx-auto transition-colors"></i>
+                            <div class="text-sm font-bold text-brand-dark group-hover:underline">
+                                <span id="acao-file-text">Clique para selecionar imagem</span>
+                            </div>
+                            <p class="text-xs text-gray-400">Proporção ideal: 4:5 (Vertical) • JPG, PNG ou WEBP</p>
+                        </div>
+                    </label>
+
+                    <!-- Optional URL input for direct image link -->
+                    <div class="mt-2">
+                        <input type="url" id="acao-imagem-url" placeholder="Ou cole o link direto da imagem (https://...)" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-700 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark" onchange="onManualImageUrlChange(this.value)">
                     </div>
                 </div>
                 
@@ -618,11 +610,6 @@
                             <option value="Aba: Encerradas">Aba: Encerradas</option>
                         </select>
                     </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-bold text-gray-800 mb-2">Porcentagem Vendida (%)</label>
-                    <input type="number" id="acao-porcentagem" min="0" max="100" placeholder="0" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900" value="0">
                 </div>
                 
                 <div>
@@ -838,6 +825,12 @@
                     if (submitEl) submitEl.innerHTML = '<i class="ph-bold ph-check"></i> Salvar Ação';
                     const fileText = document.getElementById('acao-file-text');
                     if (fileText) fileText.textContent = 'Clique para selecionar imagem';
+                    const previewContainer = document.getElementById('acao-preview-container');
+                    const imgPreview = document.getElementById('acao-img-preview');
+                    const urlInput = document.getElementById('acao-imagem-url');
+                    if (imgPreview) imgPreview.src = '';
+                    if (previewContainer) previewContainer.classList.add('hidden');
+                    if (urlInput) urlInput.value = '';
                     if (typeof uploadedImageUrls !== 'undefined') delete uploadedImageUrls['modal-acao'];
                 } else if (modalId === 'modal-video') {
                     const idInput = document.getElementById('video-id');

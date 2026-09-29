@@ -190,12 +190,6 @@ function renderAdminDashboard(db) {
                 <p class="font-bold text-gray-900">${db.destaque.titulo}</p>
                 <p class="text-sm text-gray-500">Cota: R$ ${db.destaque.precoCota}</p>
             </td>
-            <td class="p-4 w-48">
-                <div class="w-full bg-gray-200 rounded-full h-2 mb-1 overflow-hidden">
-                    <div class="bg-brand-action h-2 rounded-full" style="width: ${db.destaque.porcentagemVendido}%"></div>
-                </div>
-                <span class="text-xs font-semibold text-gray-600">${db.destaque.porcentagemVendido}% Vendido</span>
-            </td>
             <td class="p-4">
                 <span class="px-3 py-1 bg-yellow-100 text-yellow-800 border border-yellow-200 text-xs font-bold rounded-lg flex w-max items-center gap-1">
                     <i class="ph-fill ph-star"></i> Destaque Principal
@@ -220,12 +214,6 @@ function renderAdminDashboard(db) {
             <td class="p-4">
                 <p class="font-bold text-gray-900">${acao.titulo}</p>
                 <p class="text-sm text-gray-500">Cota: R$ ${acao.precoCota}</p>
-            </td>
-            <td class="p-4 w-48">
-                <div class="w-full bg-gray-200 rounded-full h-2 mb-1 overflow-hidden">
-                    <div class="bg-brand-action h-2 rounded-full" style="width: ${acao.porcentagemVendido}%"></div>
-                </div>
-                <span class="text-xs font-semibold text-gray-600">${acao.porcentagemVendido}% Vendido</span>
             </td>
             <td class="p-4">
                 <span class="px-3 py-1 bg-green-100 text-green-800 border border-green-200 text-xs font-bold rounded-lg flex w-max items-center gap-1">
@@ -339,6 +327,21 @@ async function handleFileUpload(fileInput, formKey) {
   if (!fileInput.files || fileInput.files.length === 0) return;
   const file = fileInput.files[0];
 
+  // Visualização e fallback instantâneo via FileReader
+  if (formKey === 'modal-acao') {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imgPreview = document.getElementById('acao-img-preview');
+      const previewContainer = document.getElementById('acao-preview-container');
+      const fileText = document.getElementById('acao-file-text');
+      if (imgPreview) imgPreview.src = e.target.result;
+      if (previewContainer) previewContainer.classList.remove('hidden');
+      if (fileText) fileText.textContent = `Arquivo: ${file.name}`;
+      uploadedImageUrls[formKey] = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
   const formData = new FormData();
   formData.append('file', file);
 
@@ -354,14 +357,29 @@ async function handleFileUpload(fileInput, formKey) {
     const json = await res.json();
     if (json.success && json.url) {
       uploadedImageUrls[formKey] = json.url;
+      const urlInput = document.getElementById('acao-imagem-url');
+      if (urlInput && formKey === 'modal-acao') urlInput.value = json.url;
       showToast('Imagem carregada com sucesso!', 'success');
     } else {
-      showToast('Erro ao enviar imagem.', 'error');
+      showToast('Imagem pronta para salvar.', 'info');
     }
   } catch (err) {
     console.error('Erro no upload de imagem:', err);
-    showToast('Falha no upload da imagem.', 'error');
+    showToast('Imagem pronta localmente para salvar.', 'info');
   }
+}
+
+// Alteração manual da URL de imagem
+function onManualImageUrlChange(url) {
+  if (!url) return;
+  const cleanUrl = url.trim();
+  uploadedImageUrls['modal-acao'] = cleanUrl;
+  const imgPreview = document.getElementById('acao-img-preview');
+  const previewContainer = document.getElementById('acao-preview-container');
+  const fileText = document.getElementById('acao-file-text');
+  if (imgPreview) imgPreview.src = cleanUrl;
+  if (previewContainer) previewContainer.classList.remove('hidden');
+  if (fileText) fileText.textContent = 'Imagem definida via link';
 }
 
 // Upload Video Handler via API or Direct Cloudinary
@@ -600,8 +618,6 @@ function openEditAcao(id) {
   if (precoInput) precoInput.value = acao.precoCota || '';
   const localSelect = document.getElementById('acao-local');
   if (localSelect) localSelect.value = localExibicao;
-  const porcentagemInput = document.getElementById('acao-porcentagem');
-  if (porcentagemInput) porcentagemInput.value = acao.porcentagemVendido || 0;
   const checkoutInput = document.getElementById('acao-checkout');
   if (checkoutInput) checkoutInput.value = acao.linkCheckout || '';
 
@@ -612,7 +628,23 @@ function openEditAcao(id) {
   if (submitEl) submitEl.innerHTML = '<i class="ph-bold ph-check"></i> Salvar Alterações';
 
   const fileText = document.getElementById('acao-file-text');
-  if (fileText) fileText.textContent = acao.imagemUrl ? 'Imagem atual mantida (clique para trocar)' : 'Clique para selecionar imagem';
+  const previewContainer = document.getElementById('acao-preview-container');
+  const imgPreview = document.getElementById('acao-img-preview');
+  const urlInput = document.getElementById('acao-imagem-url');
+
+  delete uploadedImageUrls['modal-acao'];
+
+  if (acao.imagemUrl) {
+    if (imgPreview) imgPreview.src = acao.imagemUrl;
+    if (previewContainer) previewContainer.classList.remove('hidden');
+    if (fileText) fileText.textContent = 'Clique para trocar a imagem';
+    if (urlInput) urlInput.value = acao.imagemUrl;
+  } else {
+    if (imgPreview) imgPreview.src = '';
+    if (previewContainer) previewContainer.classList.add('hidden');
+    if (fileText) fileText.textContent = 'Clique para selecionar imagem';
+    if (urlInput) urlInput.value = '';
+  }
 }
 
 function openEditGanhador(id) {
@@ -691,7 +723,9 @@ async function submitNovaAcao(event) {
   const isEditing = !!id;
 
   const existingItem = (isEditing && currentEditState.acao) ? currentEditState.acao : {};
-  const imagemUrl = uploadedImageUrls['modal-acao'] || existingItem.imagemUrl || 'https://placehold.co/400x500/111827/ca8a04?text=FOTO+AÇÃO';
+  const urlInput = document.getElementById('acao-imagem-url');
+  const manualUrl = urlInput ? urlInput.value.trim() : '';
+  const imagemUrl = uploadedImageUrls['modal-acao'] || manualUrl || existingItem.imagemUrl || 'https://placehold.co/400x500/111827/ca8a04?text=FOTO+AÇÃO';
 
   const tituloEl = document.getElementById('acao-titulo') || event.target.querySelector('input[placeholder*="HILUX"]');
   const precoEl = document.getElementById('acao-preco') || event.target.querySelector('input[placeholder="0,50"]');
@@ -733,6 +767,14 @@ async function submitNovaAcao(event) {
       closeModal();
       event.target.reset();
       delete uploadedImageUrls['modal-acao'];
+      const imgPreview = document.getElementById('acao-img-preview');
+      const previewContainer = document.getElementById('acao-preview-container');
+      const fileText = document.getElementById('acao-file-text');
+      const urlInputReset = document.getElementById('acao-imagem-url');
+      if (imgPreview) imgPreview.src = '';
+      if (previewContainer) previewContainer.classList.add('hidden');
+      if (fileText) fileText.textContent = 'Clique para selecionar imagem';
+      if (urlInputReset) urlInputReset.value = '';
       currentEditState.acao = null;
       loadAdminData();
     } else {

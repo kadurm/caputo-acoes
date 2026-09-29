@@ -64,27 +64,18 @@
 <body class="bg-gray-100 text-gray-800 font-sans antialiased selection:bg-brand-gold selection:text-white pb-24">
 
     <!-- HEADER & LOGO -->
-    <header class="relative overflow-hidden shadow-lg border-b border-white/10">
+    <header class="relative overflow-hidden shadow-md border-b border-gray-200 min-h-[240px] sm:min-h-[270px] flex items-center justify-center">
         <!-- Background Cover Image & Overlay -->
         <div class="absolute inset-0 z-0">
-            <img src="images/fotodecapa.jpeg" alt="Capa Caputo Ações" class="w-full h-full object-cover object-center transform scale-105 transition-transform duration-700">
-            <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-black/75"></div>
+            <img src="images/fotodecapa.jpeg" alt="Capa Caputo Ações" class="w-full h-full object-cover object-[center_22%] transition-transform duration-700">
+            <!-- Subtle gradient to give depth and highlight the glass card -->
+            <div class="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/35"></div>
         </div>
 
         <!-- Glassmorphism Container with Logo -->
-        <div class="relative z-10 max-w-md mx-auto px-4 py-8 flex flex-col items-center justify-center">
-            <div class="flex flex-col items-center justify-center select-none px-8 py-5 rounded-2xl backdrop-blur-md bg-white/15 border border-white/30 shadow-2xl shadow-black/40">
-                <div class="relative flex items-center justify-center h-16 w-16 mb-1">
-                    <!-- Overlapping C and A representation -->
-                    <span class="font-serif text-[4.5rem] leading-none text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] absolute -ml-4">C</span>
-                    <span class="font-serif text-[4.5rem] leading-none text-brand-gold italic drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] absolute ml-4">A</span>
-                </div>
-                <h1 class="font-serif text-3xl tracking-[0.25em] text-white font-bold drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)] mt-3 ml-2">CAPUTO</h1>
-                <div class="flex items-center gap-3 mt-1.5 w-full justify-center">
-                    <div class="h-[1px] w-10 bg-brand-gold/80"></div>
-                    <h2 class="font-sans text-[11px] font-bold tracking-[0.35em] text-gray-200 uppercase drop-shadow">AÇÕES</h2>
-                    <div class="h-[1px] w-10 bg-brand-gold/80"></div>
-                </div>
+        <div class="relative z-10 max-w-md mx-auto px-4 py-6 flex flex-col items-center justify-center">
+            <div class="flex flex-col items-center justify-center px-8 py-4 rounded-2xl backdrop-blur-md bg-white/65 border border-white/80 shadow-xl shadow-black/15 transition-transform hover:scale-[1.02] duration-300">
+                <img src="images/logo_caputo_dark.png" alt="Caputo Ações" class="h-16 sm:h-20 w-auto object-contain drop-shadow-sm select-none">
             </div>
         </div>
     </header>

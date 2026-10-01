@@ -339,23 +339,16 @@ app.post('/api/sync', authenticateToken, async (req, res) => {
     }
 
     const db = await getAppData();
-    const serverTime = db.updatedAt ? new Date(db.updatedAt).getTime() : 0;
-    const clientTime = incomingData.updatedAt ? new Date(incomingData.updatedAt).getTime() : Date.now();
-
-    if (clientTime >= serverTime || !db.updatedAt) {
-      const mergedDb = {
-        ...db,
-        ...incomingData,
-        destaque: incomingData.destaque || db.destaque,
-        acoes: incomingData.acoes || db.acoes,
-        config: { ...(db.config || {}), ...(incomingData.config || {}) },
-        updatedAt: new Date().toISOString()
-      };
-      await saveAppData(mergedDb);
-      return res.json({ success: true, message: 'Dados sincronizados com sucesso!', fullDb: mergedDb });
-    }
-
-    res.json({ success: true, message: 'Servidor já possui dados atualizados.', fullDb: db });
+    const mergedDb = {
+      ...db,
+      ...incomingData,
+      destaque: incomingData.destaque || db.destaque,
+      acoes: (Array.isArray(incomingData.acoes) && incomingData.acoes.length > 0) ? incomingData.acoes : db.acoes,
+      config: { ...(db.config || {}), ...(incomingData.config || {}) },
+      updatedAt: new Date().toISOString()
+    };
+    await saveAppData(mergedDb);
+    return res.json({ success: true, message: 'Dados sincronizados com sucesso!', fullDb: mergedDb });
   } catch (err) {
     console.error('Erro na sincronização:', err);
     res.status(500).json({ success: false, message: 'Falha ao sincronizar dados.' });

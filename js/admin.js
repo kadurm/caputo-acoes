@@ -185,6 +185,12 @@ function logoutAdmin() {
   showLoginScreen();
 }
 
+function isDefaultFactoryImage(url) {
+  if (!url || typeof url !== 'string') return true;
+  const lower = url.toLowerCase().trim();
+  return lower.includes('images.unsplash.com') || lower.includes('placehold.co') || lower === '';
+}
+
 async function loadAdminData() {
   try {
     const res = await fetch(`/api/public/data?t=${Date.now()}`, {
@@ -205,19 +211,93 @@ async function loadAdminData() {
           const cachedTime = cached.updatedAt ? new Date(cached.updatedAt).getTime() : 0;
           const serverTime = finalData.updatedAt ? new Date(finalData.updatedAt).getTime() : 0;
 
-          const serverHasDefaultDestaque = (!finalData.destaque || !finalData.destaque.titulo || finalData.destaque.titulo === 'Ação Principal');
-          const cacheHasCustomDestaque = (cached.destaque && cached.destaque.titulo && cached.destaque.titulo !== 'Ação Principal');
+          let hasCustomEditsInCache = false;
 
-          if (cachedTime > serverTime || (serverHasDefaultDestaque && cacheHasCustomDestaque)) {
-            console.log('🔄 Mantendo dados locais mais recentes e sincronizando com o servidor...');
-            finalData = {
-              ...finalData,
-              ...cached,
-              destaque: cached.destaque || finalData.destaque,
-              acoes: (cached.acoes && cached.acoes.length > 0) ? cached.acoes : finalData.acoes,
-              config: { ...(finalData.config || {}), ...(cached.config || {}) },
-              updatedAt: cached.updatedAt || new Date().toISOString()
-            };
+          // 1. Proteger Destaque (Título e Imagem)
+          if (cached.destaque) {
+            finalData.destaque = finalData.destaque || {};
+            // Título
+            if (cached.destaque.titulo && cached.destaque.titulo !== 'Ação Principal') {
+              if (!finalData.destaque.titulo || finalData.destaque.titulo === 'Ação Principal' || cachedTime > serverTime) {
+                finalData.destaque.titulo = cached.destaque.titulo;
+                hasCustomEditsInCache = true;
+              }
+            }
+            // Imagem do Destaque: nunca regredir para imagem padrão de fábrica se o cache tem foto customizada
+            if (cached.destaque.imagemUrl && !isDefaultFactoryImage(cached.destaque.imagemUrl)) {
+              if (isDefaultFactoryImage(finalData.destaque.imagemUrl) || cachedTime > serverTime) {
+                finalData.destaque.imagemUrl = cached.destaque.imagemUrl;
+                hasCustomEditsInCache = true;
+              }
+            }
+            if (cachedTime > serverTime) {
+              finalData.destaque = { ...finalData.destaque, ...cached.destaque };
+              hasCustomEditsInCache = true;
+            }
+          }
+
+          // 2. Proteger Ações (Fotos customizadas e edições)
+          if (Array.isArray(cached.acoes) && cached.acoes.length > 0) {
+            finalData.acoes = finalData.acoes || [];
+            finalData.acoes = finalData.acoes.map(serverItem => {
+              const cachedItem = cached.acoes.find(c => c.id === serverItem.id);
+              if (!cachedItem) return serverItem;
+
+              const cachedHasCustomImg = cachedItem.imagemUrl && !isDefaultFactoryImage(cachedItem.imagemUrl);
+              const serverHasDefaultImg = isDefaultFactoryImage(serverItem.imagemUrl);
+
+              if (cachedHasCustomImg && (serverHasDefaultImg || cachedTime > serverTime)) {
+                hasCustomEditsInCache = true;
+                return {
+                  ...serverItem,
+                  ...(cachedTime > serverTime ? cachedItem : {}),
+                  imagemUrl: cachedItem.imagemUrl
+                };
+              }
+
+              if (cachedTime > serverTime) {
+                hasCustomEditsInCache = true;
+                return { ...serverItem, ...cachedItem };
+              }
+              return serverItem;
+            });
+
+            // Se o cache tiver ações adicionadas que não estão no servidor
+            cached.acoes.forEach(cItem => {
+              if (!finalData.acoes.some(sItem => sItem.id === cItem.id)) {
+                finalData.acoes.push(cItem);
+                hasCustomEditsInCache = true;
+              }
+            });
+          }
+
+          // 3. Proteger Configurações (WhatsApp, Instagram, Cloudinary)
+          if (cached.config) {
+            finalData.config = finalData.config || {};
+            if (cached.config.whatsappUrl && !cached.config.whatsappUrl.includes('5500000000000')) {
+              if (!finalData.config.whatsappUrl || finalData.config.whatsappUrl.includes('5500000000000')) {
+                finalData.config.whatsappUrl = cached.config.whatsappUrl;
+                hasCustomEditsInCache = true;
+              }
+            }
+            if (cached.config.instagramUrl && !finalData.config.instagramUrl) {
+              finalData.config.instagramUrl = cached.config.instagramUrl;
+            }
+            if (cached.config.cloudinaryCloudName) {
+              finalData.config.cloudinaryCloudName = cached.config.cloudinaryCloudName;
+            }
+            if (cached.config.cloudinaryUploadPreset) {
+              finalData.config.cloudinaryUploadPreset = cached.config.cloudinaryUploadPreset;
+            }
+          }
+
+          // 4. Sincronizar de volta para o servidor se o cache tiver fotos/dados customizados
+          const hasCustomPhotosInCache = (cached.destaque && !isDefaultFactoryImage(cached.destaque.imagemUrl)) ||
+            (Array.isArray(cached.acoes) && cached.acoes.some(a => !isDefaultFactoryImage(a.imagemUrl)));
+
+          if (cachedTime > serverTime || hasCustomEditsInCache || hasCustomPhotosInCache) {
+            console.log('🔄 Mantendo fotos e edições customizadas e sincronizando com o servidor...');
+            finalData.updatedAt = cached.updatedAt || new Date().toISOString();
             if (authToken) {
               fetch('/api/sync', {
                 method: 'POST',
@@ -892,8 +972,7 @@ function openEditAcao(id) {
   const imgPreview = document.getElementById('acao-img-preview');
   const urlInput = document.getElementById('acao-imagem-url');
 
-  // Preserva a imagem existente caso o usuário não selecione outra
-  uploadedImageUrls['modal-acao'] = acao.imagemUrl || '';
+  delete uploadedImageUrls['modal-acao'];
 
   if (acao.imagemUrl) {
     if (imgPreview) {
@@ -904,7 +983,7 @@ function openEditAcao(id) {
       };
     }
     if (previewContainer) previewContainer.classList.remove('hidden');
-    if (fileText) fileText.textContent = 'Clique para trocar a imagem';
+    if (fileText) fileText.textContent = 'Clique para trocar a foto';
     if (urlInput) urlInput.value = acao.imagemUrl;
   } else {
     if (imgPreview) imgPreview.src = '';

@@ -552,7 +552,7 @@
 
                     <!-- Optional URL input for direct image link -->
                     <div class="mt-2">
-                        <input type="text" id="acao-imagem-url" placeholder="Ou cole o link direto da imagem (https://...)" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-700 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark" onchange="onManualImageUrlChange(this.value)">
+                        <input type="text" id="acao-imagem-url" placeholder="Ou cole o link direto da imagem (https://...)" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-700 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark" oninput="onManualImageUrlChange(this.value)" onchange="onManualImageUrlChange(this.value)">
                     </div>
                 </div>
                 
@@ -952,6 +952,6 @@
         }
     </script>
     <!-- JAVASCRIPT ADMIN CONECTADO À API -->
-    <script src="js/admin.js?v=20261001_04"></script>
+    <script src="js/admin.js?v=20261001_05"></script>
 </body>
 </html>

@@ -44,7 +44,7 @@ const DEFAULT_DATA = {
   financeiro: {
     transacoes: []
   },
-  updatedAt: new Date().toISOString()
+  updatedAt: '2020-01-01T00:00:00.000Z'
 };
 
 // Cache de conexão para ambiente Serverless (Vercel)

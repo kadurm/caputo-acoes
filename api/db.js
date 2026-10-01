@@ -20,7 +20,7 @@ const DEFAULT_DATA = {
     titulo: 'Ação Principal',
     subtitulo: 'Apenas R$ 0,50 a cota.',
     precoCota: '0,50',
-    imagemUrl: '',
+    imagemUrl: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&auto=format&fit=crop&q=80',
     statusBadge: 'Encerrando em breve!',
     linkCheckout: 'https://wa.me/5500000000000',
     porcentagemVendido: 0

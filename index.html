@@ -260,9 +260,11 @@
                         var d = db.destaque;
                         var sub = (d.subtitulo || ('Apenas R$ ' + d.precoCota + ' a cota.')).replace(/\.?\s*Loteria Federal\.?/gi, '').trim();
                         var link = d.linkCheckout || (db.config && db.config.whatsappUrl) || 'https://wa.me/5500000000000';
+                        var defaultImg = 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&auto=format&fit=crop&q=80';
+                        var imgSrc = (d.imagemUrl && d.imagemUrl.trim()) ? d.imagemUrl.trim() : defaultImg;
                         if (sec) {
                             sec.innerHTML = '<div id="destaque-container" class="relative w-full aspect-[4/5] rounded-2xl overflow-hidden shadow-lg border border-gray-200 bg-gray-900 group">' +
-                                '<img src="' + d.imagemUrl + '" alt="' + d.titulo + '" class="w-full h-full object-cover">' +
+                                '<img src="' + imgSrc + '" alt="' + d.titulo + '" class="w-full h-full object-cover" onerror="this.onerror=null; this.src=\'' + defaultImg + '\';">' +
                                 '<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4">' +
                                     '<span class="bg-red-600 text-white text-xs font-bold uppercase px-3 py-1 rounded-full w-max mb-2 animate-pulse-slow">' + (d.statusBadge || 'Encerrando em breve!') + '</span>' +
                                     '<h3 class="text-white font-bold text-2xl leading-tight mb-1 shadow-black drop-shadow-md">' + d.titulo + '</h3>' +
@@ -279,6 +281,6 @@
         })();
     </script>
     <!-- JAVASCRIPT DINÂMICO DA API -->
-    <script src="/js/main.js?v=20261001_01"></script>
+    <script src="/js/main.js?v=20261001_02"></script>
 </body>
 </html>

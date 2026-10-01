@@ -94,6 +94,10 @@ function renderPageData(db) {
     return baseLink;
   }
 
+// Imagens padrão de alta resolução e confiabilidade para fallback caso URLs quebrem
+const DEFAULT_DESTAQUE_IMG = 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&auto=format&fit=crop&q=80';
+const DEFAULT_CARD_IMG = 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&auto=format&fit=crop&q=80';
+
   // 1. Render Destaque (Flyer Principal) - Botão COMPRAR NÚMEROS
   const destaqueSection = document.getElementById('destaque-section') || document.querySelector('main section:first-of-type');
   if (db.destaque && db.destaque.titulo) {
@@ -102,11 +106,12 @@ function renderPageData(db) {
       .replace(/\.?\s*Sorteio pela Loteria Federal\.?/gi, '')
       .replace(/\.?\s*Loteria Federal\.?/gi, '')
       .trim();
+    const imgSrcDestaque = (db.destaque.imagemUrl && db.destaque.imagemUrl.trim()) ? db.destaque.imagemUrl.trim() : DEFAULT_DESTAQUE_IMG;
 
     if (destaqueSection) {
       destaqueSection.innerHTML = `
         <div id="destaque-container" class="relative w-full aspect-[4/5] rounded-2xl overflow-hidden shadow-lg border border-gray-200 bg-gray-900 group">
-            <img src="${db.destaque.imagemUrl}" alt="${db.destaque.titulo}" class="w-full h-full object-cover">
+            <img src="${imgSrcDestaque}" alt="${db.destaque.titulo}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='${DEFAULT_DESTAQUE_IMG}';">
             
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4">
                 <span class="bg-red-600 text-white text-xs font-bold uppercase px-3 py-1 rounded-full w-max mb-2 animate-pulse-slow">
@@ -140,12 +145,13 @@ function renderPageData(db) {
     if (acoesAtivas.length > 0) {
       tabAtivasContainer.innerHTML = acoesAtivas.map(acao => {
         const linkAcao = getWhatsAppActionLink(acao, whatsappSuporte, acao.titulo);
+        const imgSrc = (acao.imagemUrl && acao.imagemUrl.trim()) ? acao.imagemUrl.trim() : DEFAULT_CARD_IMG;
 
         return `
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="flex p-3 gap-4">
                 <div class="w-24 h-24 rounded-xl bg-gray-200 flex-shrink-0 overflow-hidden">
-                    <img src="${acao.imagemUrl}" alt="${acao.titulo}" class="w-full h-full object-cover">
+                    <img src="${imgSrc}" alt="${acao.titulo}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='${DEFAULT_CARD_IMG}';">
                 </div>
                 <div class="flex flex-col justify-center flex-1">
                     <span class="text-[10px] font-bold text-green-700 uppercase tracking-wider mb-1">Cotas Disponíveis</span>
@@ -181,6 +187,7 @@ function renderPageData(db) {
     if (acoesRelampago.length > 0) {
       tabRelampagoContainer.innerHTML = acoesRelampago.map(acao => {
         const linkAcao = getWhatsAppActionLink(acao, whatsappSuporte, acao.titulo);
+        const imgSrcRelampago = (acao.imagemUrl && acao.imagemUrl.trim()) ? acao.imagemUrl.trim() : DEFAULT_CARD_IMG;
 
         const tagVinculada = acao.acaoVinculada
           ? `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded-md mt-1 mb-2 border border-amber-200/50">
@@ -194,7 +201,7 @@ function renderPageData(db) {
         <div class="bg-white rounded-2xl shadow-sm border border-amber-200/70 overflow-hidden hover:shadow-md transition-shadow">
             <div class="flex p-3 gap-4">
                 <div class="w-24 h-24 rounded-xl bg-amber-50 flex-shrink-0 overflow-hidden border border-amber-100">
-                    <img src="${acao.imagemUrl}" alt="${acao.titulo}" class="w-full h-full object-cover">
+                    <img src="${imgSrcRelampago}" alt="${acao.titulo}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='${DEFAULT_CARD_IMG}';">
                 </div>
                 <div class="flex flex-col justify-center flex-1">
                     <div class="flex items-center gap-1.5 mb-0.5">

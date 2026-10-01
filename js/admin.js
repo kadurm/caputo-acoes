@@ -2,6 +2,70 @@ let authToken = localStorage.getItem('caputo_token');
 let uploadedImageUrls = {};
 let uploadedVideoUrls = {};
 
+// Imagens padrão para fallback visual seguro
+const DEFAULT_DESTAQUE_IMG = 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&auto=format&fit=crop&q=80';
+const DEFAULT_CARD_IMG = 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&auto=format&fit=crop&q=80';
+
+// Compressão inteligente client-side (Canvas) para evitar erro 413 (Payload Too Large) e acelerar uploads
+function compressImageClientSide(file, maxWidth = 1200, maxHeight = 1200, quality = 0.85) {
+  return new Promise((resolve) => {
+    if (!file || !file.type || !file.type.startsWith('image/')) {
+      return resolve({ file, dataUrl: null });
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const cleanName = (file.name || 'foto.jpg').replace(/\.[^/.]+$/, '') + '.jpg';
+            const compressedFile = new File([blob], cleanName, {
+              type: 'image/jpeg',
+              lastModified: Date.now()
+            });
+            resolve({ file: compressedFile, dataUrl });
+          } else {
+            resolve({ file, dataUrl: e.target.result });
+          }
+        }, 'image/jpeg', quality);
+      };
+
+      img.onerror = () => {
+        resolve({ file, dataUrl: e.target.result });
+      };
+
+      img.src = e.target.result;
+    };
+
+    reader.onerror = () => {
+      resolve({ file, dataUrl: null });
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initAdmin();
 });
@@ -200,9 +264,10 @@ function renderAdminDashboard(db) {
   const highlightCard = document.getElementById('dashboard-destaque-container') || document.querySelector('#view-dashboard .bg-white.rounded-2xl .flex.flex-col');
   if (highlightCard) {
     if (db.destaque && db.destaque.titulo) {
+      const destaqueImg = (db.destaque.imagemUrl && db.destaque.imagemUrl.trim()) ? db.destaque.imagemUrl.trim() : DEFAULT_DESTAQUE_IMG;
       highlightCard.innerHTML = `
         <div class="flex items-center gap-4 w-full sm:w-auto">
-            <img src="${db.destaque.imagemUrl}" class="w-16 h-16 rounded-xl object-cover shadow-sm border border-gray-200">
+            <img src="${destaqueImg}" onerror="this.onerror=null; this.src='${DEFAULT_DESTAQUE_IMG}';" class="w-16 h-16 rounded-xl object-cover shadow-sm border border-gray-200">
             <div>
                 <h4 class="font-bold text-gray-900">${db.destaque.titulo}</h4>
                 <p class="text-sm text-gray-600">R$ ${db.destaque.precoCota} a cota</p>
@@ -242,10 +307,11 @@ function renderAdminDashboard(db) {
     
     // Add Destaque if present
     if (db.destaque && db.destaque.titulo) {
+      const destaqueRowImg = (db.destaque.imagemUrl && db.destaque.imagemUrl.trim()) ? db.destaque.imagemUrl.trim() : DEFAULT_DESTAQUE_IMG;
       rowsHtml += `
         <tr class="hover:bg-gray-50 transition-colors">
             <td class="p-4 w-20">
-                <img src="${db.destaque.imagemUrl}" class="w-14 h-14 rounded-xl object-cover shadow-sm">
+                <img src="${destaqueRowImg}" onerror="this.onerror=null; this.src='${DEFAULT_DESTAQUE_IMG}';" class="w-14 h-14 rounded-xl object-cover shadow-sm">
             </td>
             <td class="p-4">
                 <p class="font-bold text-gray-900">${db.destaque.titulo}</p>
@@ -267,10 +333,12 @@ function renderAdminDashboard(db) {
     }
 
     if (db.acoes && db.acoes.length > 0) {
-      rowsHtml += db.acoes.map(acao => `
+      rowsHtml += db.acoes.map(acao => {
+        const rowImg = (acao.imagemUrl && acao.imagemUrl.trim()) ? acao.imagemUrl.trim() : DEFAULT_CARD_IMG;
+        return `
         <tr class="hover:bg-gray-50 transition-colors">
             <td class="p-4 w-20">
-                <img src="${acao.imagemUrl}" class="w-14 h-14 rounded-xl object-cover shadow-sm">
+                <img src="${rowImg}" onerror="this.onerror=null; this.src='${DEFAULT_CARD_IMG}';" class="w-14 h-14 rounded-xl object-cover shadow-sm">
             </td>
             <td class="p-4">
                 <p class="font-bold text-gray-900">${acao.titulo}</p>
@@ -293,7 +361,8 @@ function renderAdminDashboard(db) {
                 </div>
             </td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
     }
 
     acoesTbody.innerHTML = rowsHtml || `
@@ -308,14 +377,16 @@ function renderAdminDashboard(db) {
   // Render Grid: Ganhadores
   const ganhadoresGrid = document.querySelector('#view-ganhadores .grid');
   if (ganhadoresGrid && db.ganhadores) {
-    ganhadoresGrid.innerHTML = db.ganhadores.map(g => `
+    ganhadoresGrid.innerHTML = db.ganhadores.map(g => {
+      const gImg = (g.imagemUrl && g.imagemUrl.trim()) ? g.imagemUrl.trim() : DEFAULT_CARD_IMG;
+      return `
       <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden relative group">
           <div class="absolute top-2 right-2 flex gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
               <button onclick="openEditGanhador('${g.id}')" class="p-2 bg-white/90 backdrop-blur text-gray-700 hover:text-brand-dark rounded-lg shadow-sm" title="Editar"><i class="ph-bold ph-pencil-simple"></i></button>
               <button onclick="deleteGanhadorItem('${g.id}')" class="p-2 bg-white/90 backdrop-blur text-red-500 hover:text-red-700 rounded-lg shadow-sm" title="Excluir"><i class="ph-bold ph-trash"></i></button>
           </div>
           
-          <img src="${g.imagemUrl}" class="w-full h-48 object-cover">
+          <img src="${gImg}" onerror="this.onerror=null; this.src='${DEFAULT_CARD_IMG}';" class="w-full h-48 object-cover">
           <div class="p-5">
               <h4 class="font-bold text-lg text-gray-900">${g.nome}</h4>
               <p class="text-sm text-gray-600 mt-1">Prêmio: <span class="font-semibold text-gray-900">${g.premio}</span></p>
@@ -394,30 +465,36 @@ function renderAdminDashboard(db) {
   }
 }
 
-// Upload Image Handler via API (/api/upload)
+// Upload Image Handler via API (/api/upload) com compressão inteligente
 async function handleFileUpload(fileInput, formKey) {
   if (!fileInput.files || fileInput.files.length === 0) return;
-  const file = fileInput.files[0];
+  const rawFile = fileInput.files[0];
 
-  // Visualização e fallback instantâneo via FileReader
-  if (formKey === 'modal-acao') {
-    const reader = new FileReader();
-    reader.onload = (e) => {
+  showToast('Processando e otimizando imagem...', 'info');
+
+  // Compressão no cliente (< 250KB) para garantir velocidade máxima e evitar limite 413 da Vercel
+  const { file, dataUrl } = await compressImageClientSide(rawFile, 1200, 1200, 0.85);
+
+  if (dataUrl) {
+    uploadedImageUrls[formKey] = dataUrl;
+    if (formKey === 'modal-acao') {
       const imgPreview = document.getElementById('acao-img-preview');
       const previewContainer = document.getElementById('acao-preview-container');
       const fileText = document.getElementById('acao-file-text');
-      if (imgPreview) imgPreview.src = e.target.result;
+      if (imgPreview) {
+        imgPreview.src = dataUrl;
+        imgPreview.onerror = function() {
+          this.onerror = null;
+          this.src = DEFAULT_CARD_IMG;
+        };
+      }
       if (previewContainer) previewContainer.classList.remove('hidden');
-      if (fileText) fileText.textContent = `Arquivo: ${file.name}`;
-      uploadedImageUrls[formKey] = e.target.result;
-    };
-    reader.readAsDataURL(file);
+      if (fileText) fileText.textContent = `Arquivo: ${file.name} (otimizado)`;
+    }
   }
 
   const formData = new FormData();
   formData.append('file', file);
-
-  showToast('Enviando imagem...', 'info');
 
   try {
     const res = await fetch('/api/upload', {
@@ -433,11 +510,11 @@ async function handleFileUpload(fileInput, formKey) {
       if (urlInput && formKey === 'modal-acao') urlInput.value = json.url;
       showToast('Imagem carregada com sucesso!', 'success');
     } else {
-      showToast('Imagem pronta para salvar.', 'info');
+      showToast('Imagem otimizada e pronta para salvar.', 'info');
     }
   } catch (err) {
-    console.error('Erro no upload de imagem:', err);
-    showToast('Imagem pronta localmente para salvar.', 'info');
+    console.warn('Upload de imagem via API com erro, usando versão otimizada local:', err);
+    showToast('Imagem otimizada e pronta para salvar.', 'info');
   }
 }
 
@@ -449,7 +526,13 @@ function onManualImageUrlChange(url) {
   const imgPreview = document.getElementById('acao-img-preview');
   const previewContainer = document.getElementById('acao-preview-container');
   const fileText = document.getElementById('acao-file-text');
-  if (imgPreview) imgPreview.src = cleanUrl;
+  if (imgPreview) {
+    imgPreview.src = cleanUrl;
+    imgPreview.onerror = function() {
+      this.onerror = null;
+      this.src = DEFAULT_CARD_IMG;
+    };
+  }
   if (previewContainer) previewContainer.classList.remove('hidden');
   if (fileText) fileText.textContent = 'Imagem definida via link';
 }
@@ -714,7 +797,13 @@ function openEditAcao(id) {
   delete uploadedImageUrls['modal-acao'];
 
   if (acao.imagemUrl) {
-    if (imgPreview) imgPreview.src = acao.imagemUrl;
+    if (imgPreview) {
+      imgPreview.src = acao.imagemUrl;
+      imgPreview.onerror = function() {
+        this.onerror = null;
+        this.src = localExibicao.includes('Destaque') ? DEFAULT_DESTAQUE_IMG : DEFAULT_CARD_IMG;
+      };
+    }
     if (previewContainer) previewContainer.classList.remove('hidden');
     if (fileText) fileText.textContent = 'Clique para trocar a imagem';
     if (urlInput) urlInput.value = acao.imagemUrl;
@@ -804,11 +893,14 @@ async function submitNovaAcao(event) {
   const existingItem = (isEditing && currentEditState.acao) ? currentEditState.acao : {};
   const urlInput = document.getElementById('acao-imagem-url');
   const manualUrl = urlInput ? urlInput.value.trim() : '';
-  const imagemUrl = uploadedImageUrls['modal-acao'] || manualUrl || existingItem.imagemUrl || 'https://placehold.co/400x500/111827/ca8a04?text=FOTO+AÇÃO';
+  const localEl = document.getElementById('acao-local') || event.target.querySelector('select');
+  const isDestaque = localEl && localEl.value && localEl.value.includes('Destaque');
+  const defaultFallback = isDestaque ? DEFAULT_DESTAQUE_IMG : DEFAULT_CARD_IMG;
+  const rawImagemUrl = uploadedImageUrls['modal-acao'] || manualUrl || existingItem.imagemUrl || defaultFallback;
+  const imagemUrl = (rawImagemUrl && rawImagemUrl.trim()) ? rawImagemUrl.trim() : defaultFallback;
 
   const tituloEl = document.getElementById('acao-titulo') || event.target.querySelector('input[placeholder*="Título"]') || event.target.querySelector('input[type="text"]');
   const precoEl = document.getElementById('acao-preco') || event.target.querySelector('input[placeholder="0,50"]');
-  const localEl = document.getElementById('acao-local') || event.target.querySelector('select');
   const porcentagemEl = document.getElementById('acao-porcentagem');
   const checkoutEl = document.getElementById('acao-checkout') || event.target.querySelector('input[type="url"]');
   const vinculadaEl = document.getElementById('acao-vinculada');

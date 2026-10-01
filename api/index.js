@@ -83,8 +83,9 @@ app.get('/api/public/data', async (req, res) => {
       db.videos = sortVideosChronological(db.videos);
     }
     res.set({
-      'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=30',
-      'Pragma': 'no-cache'
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
     });
     res.json({
       success: true,

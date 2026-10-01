@@ -203,117 +203,8 @@ async function loadAdminData() {
         renderStorageStatus(json.storageStatus);
       }
 
-      let finalData = json.data;
-      const cachedRaw = localStorage.getItem('caputo_app_data');
-      if (cachedRaw) {
-        try {
-          const cached = JSON.parse(cachedRaw);
-          const cachedTime = cached.updatedAt ? new Date(cached.updatedAt).getTime() : 0;
-          const serverTime = finalData.updatedAt ? new Date(finalData.updatedAt).getTime() : 0;
-
-          let hasCustomEditsInCache = false;
-
-          // 1. Proteger Destaque (Título e Imagem)
-          if (cached.destaque) {
-            finalData.destaque = finalData.destaque || {};
-            // Título
-            if (cached.destaque.titulo && cached.destaque.titulo !== 'Ação Principal') {
-              if (!finalData.destaque.titulo || finalData.destaque.titulo === 'Ação Principal' || cachedTime > serverTime) {
-                finalData.destaque.titulo = cached.destaque.titulo;
-                hasCustomEditsInCache = true;
-              }
-            }
-            // Imagem do Destaque: nunca regredir para imagem padrão de fábrica se o cache tem foto customizada
-            if (cached.destaque.imagemUrl && !isDefaultFactoryImage(cached.destaque.imagemUrl)) {
-              if (isDefaultFactoryImage(finalData.destaque.imagemUrl) || cachedTime > serverTime) {
-                finalData.destaque.imagemUrl = cached.destaque.imagemUrl;
-                hasCustomEditsInCache = true;
-              }
-            }
-            if (cachedTime > serverTime) {
-              finalData.destaque = { ...finalData.destaque, ...cached.destaque };
-              hasCustomEditsInCache = true;
-            }
-          }
-
-          // 2. Proteger Ações (Fotos customizadas e edições)
-          if (Array.isArray(cached.acoes) && cached.acoes.length > 0) {
-            finalData.acoes = finalData.acoes || [];
-            finalData.acoes = finalData.acoes.map(serverItem => {
-              const cachedItem = cached.acoes.find(c => c.id === serverItem.id);
-              if (!cachedItem) return serverItem;
-
-              const cachedHasCustomImg = cachedItem.imagemUrl && !isDefaultFactoryImage(cachedItem.imagemUrl);
-              const serverHasDefaultImg = isDefaultFactoryImage(serverItem.imagemUrl);
-
-              if (cachedHasCustomImg && (serverHasDefaultImg || cachedTime > serverTime)) {
-                hasCustomEditsInCache = true;
-                return {
-                  ...serverItem,
-                  ...(cachedTime > serverTime ? cachedItem : {}),
-                  imagemUrl: cachedItem.imagemUrl
-                };
-              }
-
-              if (cachedTime > serverTime) {
-                hasCustomEditsInCache = true;
-                return { ...serverItem, ...cachedItem };
-              }
-              return serverItem;
-            });
-
-            // Se o cache tiver ações adicionadas que não estão no servidor
-            cached.acoes.forEach(cItem => {
-              if (!finalData.acoes.some(sItem => sItem.id === cItem.id)) {
-                finalData.acoes.push(cItem);
-                hasCustomEditsInCache = true;
-              }
-            });
-          }
-
-          // 3. Proteger Configurações (WhatsApp, Instagram, Cloudinary)
-          if (cached.config) {
-            finalData.config = finalData.config || {};
-            if (cached.config.whatsappUrl && !cached.config.whatsappUrl.includes('5500000000000')) {
-              if (!finalData.config.whatsappUrl || finalData.config.whatsappUrl.includes('5500000000000')) {
-                finalData.config.whatsappUrl = cached.config.whatsappUrl;
-                hasCustomEditsInCache = true;
-              }
-            }
-            if (cached.config.instagramUrl && !finalData.config.instagramUrl) {
-              finalData.config.instagramUrl = cached.config.instagramUrl;
-            }
-            if (cached.config.cloudinaryCloudName) {
-              finalData.config.cloudinaryCloudName = cached.config.cloudinaryCloudName;
-            }
-            if (cached.config.cloudinaryUploadPreset) {
-              finalData.config.cloudinaryUploadPreset = cached.config.cloudinaryUploadPreset;
-            }
-          }
-
-          // 4. Sincronizar de volta para o servidor se o cache tiver fotos/dados customizados
-          const hasCustomPhotosInCache = (cached.destaque && !isDefaultFactoryImage(cached.destaque.imagemUrl)) ||
-            (Array.isArray(cached.acoes) && cached.acoes.some(a => !isDefaultFactoryImage(a.imagemUrl)));
-
-          if (cachedTime > serverTime || hasCustomEditsInCache || hasCustomPhotosInCache) {
-            console.log('🔄 Mantendo fotos e edições customizadas e sincronizando com o servidor...');
-            finalData.updatedAt = cached.updatedAt || new Date().toISOString();
-            if (authToken) {
-              fetch('/api/sync', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${authToken}`
-                },
-                body: JSON.stringify(finalData)
-              }).catch(err => console.warn('Erro ao sincronizar com servidor:', err));
-            }
-          }
-        } catch (e) {
-          console.warn('Erro ao analisar cache local:', e);
-        }
-      }
-
+      // Dados oficiais do servidor como fonte de verdade única
+      const finalData = json.data;
       try {
         localStorage.setItem('caputo_app_data', JSON.stringify(finalData));
       } catch (storageErr) {}
@@ -325,9 +216,27 @@ async function loadAdminData() {
     }
   } catch (err) {
     console.error('Erro ao carregar dados do painel:', err);
+    try {
+      const cachedRaw = localStorage.getItem('caputo_app_data');
+      if (cachedRaw) {
+        renderAdminDashboard(JSON.parse(cachedRaw));
+      }
+    } catch (e) {}
     showToast('Falha ao sincronizar dados do servidor.', 'error');
   }
 }
+
+// Forçar limpeza do cache local e recarregar diretamente do servidor
+window.forceRefreshFromServer = async function() {
+  try {
+    localStorage.removeItem('caputo_app_data');
+    showToast('Recarregando dados mais recentes do servidor...', 'info');
+    await loadAdminData();
+    showToast('Dados sincronizados com sucesso!', 'success');
+  } catch (e) {
+    showToast('Erro ao recarregar dados.', 'error');
+  }
+};
 
 function renderStorageStatus(status) {
   const container = document.getElementById('storage-status-container');

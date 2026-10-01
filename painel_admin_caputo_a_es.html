@@ -207,11 +207,16 @@
                 <span class="text-[9px] font-extrabold uppercase tracking-widest bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded border border-gray-200">ADMIN</span>
             </div>
 
-            <!-- Botão Ver Site -->
-            <a href="/" target="_blank" class="flex items-center gap-1 px-2.5 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg border border-gray-200 transition-colors">
-                <i class="ph-bold ph-arrow-square-out text-sm text-gray-600"></i>
-                <span class="text-[11px] font-medium hidden xs:inline">Ver Site</span>
-            </a>
+            <!-- Ações Rápidas Header -->
+            <div class="flex items-center gap-1.5">
+                <button type="button" onclick="forceRefreshFromServer()" class="p-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition-colors" title="Sincronizar com o servidor">
+                    <i class="ph-bold ph-arrows-clockwise text-sm text-gray-600"></i>
+                </button>
+                <a href="/" target="_blank" class="flex items-center gap-1 px-2.5 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg border border-gray-200 transition-colors">
+                    <i class="ph-bold ph-arrow-square-out text-sm text-gray-600"></i>
+                    <span class="text-[11px] font-medium hidden xs:inline">Ver Site</span>
+                </a>
+            </div>
         </header>
 
         <!-- Dynamic Content Area -->
@@ -224,7 +229,13 @@
                         <h2 class="text-2xl font-bold text-gray-900">Visão Geral</h2>
                         <p class="text-gray-500 text-sm mt-1">Bem-vindo ao painel de controle da Caputo Ações.</p>
                     </div>
-                    <div id="storage-status-container"></div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="forceRefreshFromServer()" class="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-gray-50 text-gray-700 text-xs font-semibold rounded-xl border border-gray-200 shadow-sm transition-transform active:scale-95" title="Recarregar os dados mais recentes do servidor e limpar cache local">
+                            <i class="ph-bold ph-arrows-clockwise text-base text-gray-600"></i>
+                            <span>Sincronizar Servidor</span>
+                        </button>
+                        <div id="storage-status-container"></div>
+                    </div>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -1043,6 +1054,6 @@
         }
     </script>
     <!-- JAVASCRIPT ADMIN CONECTADO À API -->
-    <script src="js/admin.js?v=20261001_09"></script>
+    <script src="js/admin.js?v=20261001_10"></script>
 </body>
 </html>

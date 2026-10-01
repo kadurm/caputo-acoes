@@ -45,85 +45,12 @@ async function fetchPublicData() {
     if (!res.ok) throw new Error('Falha ao carregar dados da API');
     const json = await res.json();
     if (json.success && json.data) {
-      let finalData = json.data;
-      // Proteger edições customizadas contra fallbacks padrão ou servidor stale
-      const cachedRaw = localStorage.getItem('caputo_app_data');
-      if (cachedRaw) {
-        try {
-          const cached = JSON.parse(cachedRaw);
-          const cachedTime = cached.updatedAt ? new Date(cached.updatedAt).getTime() : 0;
-          const serverTime = finalData.updatedAt ? new Date(finalData.updatedAt).getTime() : 0;
-
-          // 1. Destaque: título e foto customizada
-          if (cached.destaque) {
-            finalData.destaque = finalData.destaque || {};
-            if (cached.destaque.titulo && cached.destaque.titulo !== 'Ação Principal') {
-              if (!finalData.destaque.titulo || finalData.destaque.titulo === 'Ação Principal' || cachedTime > serverTime) {
-                finalData.destaque.titulo = cached.destaque.titulo;
-              }
-            }
-            if (cached.destaque.imagemUrl && !isDefaultFactoryImage(cached.destaque.imagemUrl)) {
-              if (isDefaultFactoryImage(finalData.destaque.imagemUrl) || cachedTime > serverTime) {
-                finalData.destaque.imagemUrl = cached.destaque.imagemUrl;
-              }
-            }
-            if (cachedTime > serverTime) {
-              finalData.destaque = { ...finalData.destaque, ...cached.destaque };
-            }
-          }
-
-          // 2. Ações: foto customizada e edições
-          if (Array.isArray(cached.acoes) && cached.acoes.length > 0) {
-            finalData.acoes = finalData.acoes || [];
-            finalData.acoes = finalData.acoes.map(serverItem => {
-              const cachedItem = cached.acoes.find(c => c.id === serverItem.id);
-              if (!cachedItem) return serverItem;
-
-              const cachedHasCustomImg = cachedItem.imagemUrl && !isDefaultFactoryImage(cachedItem.imagemUrl);
-              const serverHasDefaultImg = isDefaultFactoryImage(serverItem.imagemUrl);
-
-              if (cachedHasCustomImg && (serverHasDefaultImg || cachedTime > serverTime)) {
-                return {
-                  ...serverItem,
-                  ...(cachedTime > serverTime ? cachedItem : {}),
-                  imagemUrl: cachedItem.imagemUrl
-                };
-              }
-
-              if (cachedTime > serverTime) {
-                return { ...serverItem, ...cachedItem };
-              }
-              return serverItem;
-            });
-
-            cached.acoes.forEach(cItem => {
-              if (!finalData.acoes.some(sItem => sItem.id === cItem.id)) {
-                finalData.acoes.push(cItem);
-              }
-            });
-          }
-
-          // 3. Configurações (WhatsApp)
-          if (cached.config) {
-            finalData.config = finalData.config || {};
-            if (cached.config.whatsappUrl && !cached.config.whatsappUrl.includes('5500000000000')) {
-              if (!finalData.config.whatsappUrl || finalData.config.whatsappUrl.includes('5500000000000')) {
-                finalData.config.whatsappUrl = cached.config.whatsappUrl;
-              }
-            }
-            if (cached.config.instagramUrl && !finalData.config.instagramUrl) {
-              finalData.config.instagramUrl = cached.config.instagramUrl;
-            }
-          }
-
-          if (cachedTime > serverTime) {
-            finalData.updatedAt = cached.updatedAt;
-          }
-        } catch (e) {}
-      }
+      const finalData = json.data;
+      // Salva os dados oficiais do servidor no cache local para futuras visitas rápidas
       try {
         localStorage.setItem('caputo_app_data', JSON.stringify(finalData));
       } catch (storageErr) {}
+      // Renderiza os dados oficiais recebidos do servidor
       renderPageData(finalData);
     }
   } catch (err) {

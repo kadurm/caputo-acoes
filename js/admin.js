@@ -338,24 +338,11 @@ function renderStorageStatus(status) {
       <div onclick="openModal('modal-storage-info')" class="inline-flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm cursor-pointer transition-colors" title="Clique para ver detalhes do banco na nuvem">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         <span>MongoDB Atlas Conectado</span>
-        <i class="ph-bold ph-info text-emerald-600 text-xs"></i>
-      </div>
-    `;
-  } else if (status.hasMongoConfig) {
-    container.innerHTML = `
-      <div onclick="openModal('modal-storage-info')" class="inline-flex items-center gap-2 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm cursor-pointer transition-colors" title="Tentando conectar ao MongoDB Atlas">
-        <i class="ph-bold ph-spinner animate-spin text-amber-600"></i>
-        <span>Conectando ao MongoDB...</span>
       </div>
     `;
   } else {
-    container.innerHTML = `
-      <div onclick="openModal('modal-storage-info')" class="inline-flex items-center gap-2 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm cursor-pointer transition-colors" title="Clique para entender o que é o Modo Local / Cache">
-        <i class="ph-bold ph-cloud-slash text-amber-600 text-sm"></i>
-        <span>Modo Local / Cache Ativo</span>
-        <i class="ph-bold ph-question text-amber-700 text-xs bg-amber-200/80 rounded-full w-4 h-4 flex items-center justify-center"></i>
-      </div>
-    `;
+    // Modo local / padrão: ocultar mensagem
+    container.innerHTML = '';
   }
 }
 

@@ -128,7 +128,7 @@ app.post('/api/analytics/pageview', async (req, res) => {
     }
     localDb.analytics.todayViews = (localDb.analytics.todayViews || 0) + 1;
     localDb.analytics.totalViews = (localDb.analytics.totalViews || 0) + 1;
-    writeLocalFile(localDb);
+    await saveAppData(localDb);
     res.json({ success: true, todayViews: localDb.analytics.todayViews, totalViews: localDb.analytics.totalViews });
   } catch (err) {
     // Falha silenciosa em analytics

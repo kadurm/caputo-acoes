@@ -9,6 +9,7 @@
     "hash": "node scripts/generate-hash.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.0.0",
     "cors": "^2.8.5",

@@ -1,14 +1,16 @@
 /**
  * Database Adapter - Caputo Ações
  * 
- * Suporta dois modos com tolerância a falhas:
- * 1. MongoDB Atlas (Produção / Vercel Serverless): ativado quando MONGODB_URI está configurado.
- * 2. Arquivo Local JSON (Desenvolvimento / Local): grava em data/db.json e /tmp/caputo_db.json.
+ * Suporta três modos com tolerância a falhas:
+ * 1. Supabase (Produção / Vercel Serverless): ativado quando SUPABASE_URL e SUPABASE_KEY/SUPABASE_ANON_KEY estão configurados.
+ * 2. MongoDB Atlas (Produção / Vercel Serverless): ativado quando MONGODB_URI está configurado.
+ * 3. Arquivo Local JSON (Desenvolvimento / Fallback): grava em data/db.json e /tmp/caputo_db.json.
  */
 
 const fs = require('fs');
 const path = require('path');
 const { MongoClient } = require('mongodb');
+const { createClient } = require('@supabase/supabase-js');
 
 const DB_FILE_PATH = path.join(__dirname, '..', 'data', 'db.json');
 const TMP_FILE_PATH = path.join(process.env.TMPDIR || '/tmp', 'caputo_db.json');
@@ -47,22 +49,92 @@ const DEFAULT_DATA = {
   updatedAt: '2020-01-01T00:00:00.000Z'
 };
 
-// Cache de conexão para ambiente Serverless (Vercel)
+// Cache de conexões para ambiente Serverless (Vercel)
 let cachedClient = null;
 let cachedDb = null;
+let cachedSupabase = null;
 let memoryFallback = null;
 
+// --- SUPABASE CLIENT & OPS ---
+function getSupabaseClient() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+
+  if (!cachedSupabase) {
+    cachedSupabase = createClient(url.trim(), key.trim(), {
+      auth: { persistSession: false }
+    });
+  }
+  return cachedSupabase;
+}
+
+async function getSupabaseData() {
+  const supabase = getSupabaseClient();
+  if (!supabase) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from('caputo_data')
+      .select('data')
+      .eq('id', 'current_state')
+      .maybeSingle();
+
+    if (error) {
+      console.warn('⚠️ Supabase (leitura):', error.message);
+      return null;
+    }
+
+    if (data && data.data) {
+      return data.data;
+    }
+
+    // Se o registro não existe ainda, inicializa com o estado atual
+    const initialData = readLocalFile();
+    await saveSupabaseData(initialData);
+    return initialData;
+  } catch (err) {
+    console.warn('⚠️ Exceção ao consultar Supabase:', err.message);
+    return null;
+  }
+}
+
+async function saveSupabaseData(appData) {
+  const supabase = getSupabaseClient();
+  if (!supabase) return false;
+
+  try {
+    const { error } = await supabase
+      .from('caputo_data')
+      .upsert({
+        id: 'current_state',
+        data: appData,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+
+    if (error) {
+      console.error('❌ Erro ao gravar no Supabase:', error.message);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error('❌ Exceção ao salvar no Supabase:', err.message);
+    return false;
+  }
+}
+
+// --- MONGODB CLIENT & OPS ---
 async function getMongoDb() {
   const uri = process.env.MONGODB_URI;
   if (!uri) return null;
 
   if (cachedClient && cachedDb) {
     try {
-      // Testar saúde da conexão antes de reutilizar
       await cachedDb.command({ ping: 1 });
       return cachedDb;
     } catch (pingErr) {
-      console.warn('⚠️ Conexão MongoDB Atlas expirou ou foi fechada. Reconectando...');
+      console.warn('⚠️ Conexão MongoDB Atlas expirou. Reconectando...');
       cachedClient = null;
       cachedDb = null;
     }
@@ -167,9 +239,18 @@ function normalizeAppData(data) {
 }
 
 /**
- * Retorna todos os dados da plataforma
+ * Retorna todos os dados da plataforma com suporte a Supabase, MongoDB e Local
  */
 async function getAppData() {
+  // 1. Prioridade: Supabase
+  if (process.env.SUPABASE_URL && (process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY)) {
+    const sbData = await getSupabaseData();
+    if (sbData) {
+      return normalizeAppData(sbData);
+    }
+  }
+
+  // 2. Prioridade: MongoDB Atlas
   if (process.env.MONGODB_URI) {
     const db = await getMongoDb();
     if (db) {
@@ -181,7 +262,6 @@ async function getAppData() {
           return normalizeAppData(cleanData);
         }
 
-        // Se for a primeira vez no MongoDB, popula com os dados locais
         const initialData = readLocalFile();
         await collection.updateOne(
           { _id: 'current_state' },
@@ -197,16 +277,24 @@ async function getAppData() {
     }
   }
 
+  // 3. Fallback: Arquivo Local
   return normalizeAppData(readLocalFile());
 }
 
 /**
- * Salva os dados atualizados da plataforma
+ * Salva os dados atualizados da plataforma em Nuvem e Local
  */
 async function saveAppData(data) {
-  let savedInMongo = false;
+  let savedInCloud = false;
   data.updatedAt = new Date().toISOString();
 
+  // 1. Gravar no Supabase se configurado
+  if (process.env.SUPABASE_URL && (process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY)) {
+    const sbOk = await saveSupabaseData(data);
+    if (sbOk) savedInCloud = true;
+  }
+
+  // 2. Gravar no MongoDB se configurado
   if (process.env.MONGODB_URI) {
     const db = await getMongoDb();
     if (db) {
@@ -220,7 +308,7 @@ async function saveAppData(data) {
           { $set: updatePayload },
           { upsert: true }
         );
-        savedInMongo = true;
+        savedInCloud = true;
       } catch (err) {
         console.error('❌ Erro ao salvar no MongoDB:', err.message);
         cachedClient = null;
@@ -230,21 +318,33 @@ async function saveAppData(data) {
   }
 
   const savedLocally = writeLocalFile(data);
-  return savedInMongo || savedLocally;
+  return savedInCloud || savedLocally;
 }
 
 /**
  * Informações sobre o status do armazenamento
  */
 function getStorageStatus() {
+  const hasSupabase = !!(process.env.SUPABASE_URL && (process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY));
   const hasMongoConfig = !!(process.env.MONGODB_URI && process.env.MONGODB_URI.trim());
+
+  if (hasSupabase) {
+    return {
+      mode: 'supabase',
+      connected: true,
+      provider: 'Supabase',
+      message: 'Supabase Conectado'
+    };
+  }
+
   return {
     mode: hasMongoConfig ? 'mongodb' : 'local',
     connected: hasMongoConfig && !!cachedDb,
     hasMongoConfig: hasMongoConfig,
+    provider: hasMongoConfig ? 'MongoDB Atlas' : 'Local',
     message: hasMongoConfig 
       ? (cachedDb ? 'MongoDB Atlas Conectado' : 'Conectando ao MongoDB Atlas...')
-      : 'Modo Local (Para persistência permanente na nuvem, adicione MONGODB_URI na Vercel)'
+      : 'Modo Local'
   };
 }
 
@@ -253,5 +353,6 @@ module.exports = {
   saveAppData,
   writeLocalFile,
   getMongoDb,
+  getSupabaseClient,
   getStorageStatus
 };

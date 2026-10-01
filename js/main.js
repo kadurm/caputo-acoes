@@ -142,7 +142,7 @@ function renderPageData(db) {
                <i class="ph-bold ph-link text-xs text-amber-700"></i> ${acao.acaoVinculada}
              </span>`
           : `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded-md mt-1 mb-2 border border-amber-200/50">
-               <i class="ph-fill ph-lightning text-xs text-amber-600"></i> Bilhete Premiado
+               <i class="ph-fill ph-lightning text-xs text-amber-600"></i> Resultado Rápido
              </span>`;
 
         return `

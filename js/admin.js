@@ -403,7 +403,8 @@ function renderAdminDashboard(db) {
               </div>
           </div>
       </div>
-    `).join('');
+    `;
+    }).join('');
   }
 
   // Render Grid: Vídeos (Ordem cronológica: mais novos no topo)

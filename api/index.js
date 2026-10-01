@@ -354,7 +354,7 @@ app.post('/api/acoes', authenticateToken, async (req, res) => {
       db.destaque = {
         id: novaAcao.id,
         titulo: novaAcao.titulo,
-        subtitulo: `Apenas R$ ${novaAcao.precoCota} a cota. Sorteio pela Loteria Federal.`,
+        subtitulo: `Apenas R$ ${novaAcao.precoCota} a cota.`,
         precoCota: novaAcao.precoCota,
         imagemUrl: novaAcao.imagemUrl,
         statusBadge: 'Encerrando em breve!',
@@ -415,7 +415,7 @@ app.put('/api/acoes/:id', authenticateToken, async (req, res) => {
       id: currentItem.id || id,
       titulo: req.body.titulo !== undefined ? req.body.titulo : currentItem.titulo,
       precoCota: req.body.precoCota !== undefined ? req.body.precoCota : currentItem.precoCota,
-      subtitulo: `Apenas R$ ${req.body.precoCota !== undefined ? req.body.precoCota : currentItem.precoCota} a cota. Sorteio pela Loteria Federal.`,
+      subtitulo: `Apenas R$ ${req.body.precoCota !== undefined ? req.body.precoCota : currentItem.precoCota} a cota.`,
       imagemUrl: req.body.imagemUrl || currentItem.imagemUrl,
       porcentagemVendido: req.body.porcentagemVendido !== undefined ? Number(req.body.porcentagemVendido) : (currentItem.porcentagemVendido || 0),
       localExibicao: req.body.localExibicao || currentItem.localExibicao || (fromWhere === 'destaque' ? 'Destaque Principal (Banner Topo)' : 'Aba: Ativas'),

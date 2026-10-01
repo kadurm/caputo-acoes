@@ -2,7 +2,7 @@
   "destaque": {
     "id": "destaque_1",
     "titulo": "NOVA HILUX 4x4 + R$ 20 MIL",
-    "subtitulo": "Apenas R$ 0,50 a cota. Sorteio pela Loteria Federal.",
+    "subtitulo": "Apenas R$ 0,50 a cota.",
     "precoCota": "0,50",
     "imagemUrl": "https://placehold.co/800x1000/111827/ca8a04?text=FOTO+DA+AÇÃO\n(FLYER+AQUI)",
     "statusBadge": "Encerrando em breve!",
@@ -76,7 +76,7 @@
       "nome": "Aline",
       "cidade": "Belo Horizonte - MG",
       "premio": "Entrega de Ação",
-      "bilhete": "Sorteio Federal",
+      "bilhete": "Cota Contemplada",
       "data": "15/06/2026",
       "imagemUrl": "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=600&auto=format&fit=crop&q=80"
     },
@@ -94,7 +94,7 @@
       "nome": "Renata",
       "cidade": "São João del Rei - MG",
       "premio": "12 Salários Mínimos",
-      "bilhete": "Sorteio Federal",
+      "bilhete": "Cota Contemplada",
       "data": "13/05/2026",
       "imagemUrl": "https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=600&auto=format&fit=crop&q=80"
     },
@@ -121,7 +121,7 @@
       "nome": "June",
       "cidade": "Contagem - MG",
       "premio": "Volkswagen Jetta 2.0",
-      "bilhete": "Sorteio Federal",
+      "bilhete": "Cota Contemplada",
       "data": "03/04/2026",
       "imagemUrl": "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&auto=format&fit=crop&q=80"
     },
@@ -130,7 +130,7 @@
       "nome": "Vitória",
       "cidade": "São João del Rei - MG",
       "premio": "Honda PCX",
-      "bilhete": "Sorteio Federal",
+      "bilhete": "Cota Contemplada",
       "data": "21/03/2026",
       "imagemUrl": "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=600&auto=format&fit=crop&q=80"
     },

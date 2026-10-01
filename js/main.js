@@ -53,6 +53,10 @@ function renderPageData(db) {
   if (db.destaque && db.destaque.titulo) {
     const destaqueSection = document.querySelector('main section:first-of-type');
     const linkComprar = getWhatsAppActionLink(db.destaque, whatsappSuporte, db.destaque.titulo);
+    const subtituloLimpo = (db.destaque.subtitulo || `Apenas R$ ${db.destaque.precoCota} a cota.`)
+      .replace(/\.?\s*Sorteio pela Loteria Federal\.?/gi, '')
+      .replace(/\.?\s*Loteria Federal\.?/gi, '')
+      .trim();
 
     if (destaqueSection) {
       destaqueSection.innerHTML = `
@@ -64,7 +68,7 @@ function renderPageData(db) {
                     ${db.destaque.statusBadge || 'Encerrando em breve!'}
                 </span>
                 <h3 class="text-white font-bold text-2xl leading-tight mb-1 shadow-black drop-shadow-md">${db.destaque.titulo}</h3>
-                <p class="text-gray-300 text-sm mb-4">${db.destaque.subtitulo || `Apenas R$ ${db.destaque.precoCota} a cota.`}</p>
+                <p class="text-gray-300 text-sm mb-4">${subtituloLimpo || `Apenas R$ ${db.destaque.precoCota} a cota.`}</p>
                 
                 <a id="btn-comprar-destaque" href="${linkComprar}" target="_blank" class="w-full bg-brand-action hover:bg-green-500 text-white font-bold text-lg py-4 rounded-xl shadow-[0_4px_0_0_#14532d] active:shadow-[0_0px_0_0_#14532d] active:translate-y-1 transition-all flex items-center justify-center gap-2">
                     <i class="ph ph-shopping-cart text-2xl"></i>

@@ -17,7 +17,7 @@ const DEFAULT_DATA = {
   destaque: {
     id: 'destaque_1',
     titulo: 'NOVA HILUX 4x4 + R$ 20 MIL',
-    subtitulo: 'Apenas R$ 0,50 a cota. Sorteio pela Loteria Federal.',
+    subtitulo: 'Apenas R$ 0,50 a cota.',
     precoCota: '0,50',
     imagemUrl: 'https://placehold.co/800x1000/111827/ca8a04?text=FOTO+DA+AÇÃO',
     statusBadge: 'Encerrando em breve!',
@@ -113,6 +113,16 @@ function normalizeAppData(data) {
   data.videos = data.videos || [];
   data.financeiro = data.financeiro || { transacoes: [] };
   data.financeiro.transacoes = data.financeiro.transacoes || [];
+  if (data.destaque && data.destaque.subtitulo) {
+    data.destaque.subtitulo = data.destaque.subtitulo.replace(/\.?\s*Sorteio pela Loteria Federal\.?/gi, '').trim();
+  }
+  if (Array.isArray(data.ganhadores)) {
+    data.ganhadores.forEach(g => {
+      if (g.bilhete && g.bilhete.toLowerCase().includes('federal')) {
+        g.bilhete = 'Cota Contemplada';
+      }
+    });
+  }
   return data;
 }
 

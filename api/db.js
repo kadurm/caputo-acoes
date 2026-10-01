@@ -1,9 +1,9 @@
 /**
  * Database Adapter - Caputo Ações
  * 
- * Suporta dois modos:
+ * Suporta dois modos com tolerância a falhas:
  * 1. MongoDB Atlas (Produção / Vercel Serverless): ativado quando MONGODB_URI está configurado.
- * 2. Arquivo Local JSON (Desenvolvimento / Local): fallback automático para data/db.json.
+ * 2. Arquivo Local JSON (Desenvolvimento / Local): grava em data/db.json e /tmp/caputo_db.json.
  */
 
 const fs = require('fs');
@@ -11,18 +11,19 @@ const path = require('path');
 const { MongoClient } = require('mongodb');
 
 const DB_FILE_PATH = path.join(__dirname, '..', 'data', 'db.json');
+const TMP_FILE_PATH = path.join(process.env.TMPDIR || '/tmp', 'caputo_db.json');
 
-// Estrutura padrão inicial caso o banco esteja vazio
+// Estrutura padrão limpa sem dados fictícios que possam sobrescrever a interface
 const DEFAULT_DATA = {
   destaque: {
     id: 'destaque_1',
-    titulo: 'NOVA HILUX 4x4 + R$ 20 MIL',
+    titulo: 'Ação Principal',
     subtitulo: 'Apenas R$ 0,50 a cota.',
     precoCota: '0,50',
-    imagemUrl: 'https://placehold.co/800x1000/111827/ca8a04?text=FOTO+DA+AÇÃO',
+    imagemUrl: '',
     statusBadge: 'Encerrando em breve!',
     linkCheckout: 'https://wa.me/5500000000000',
-    porcentagemVendido: 85
+    porcentagemVendido: 0
   },
   acoes: [],
   encerradas: [],
@@ -35,7 +36,7 @@ const DEFAULT_DATA = {
     cloudinaryUploadPreset: 'caputo_videos'
   },
   analytics: {
-    today: '22/09/2026',
+    today: '01/10/2026',
     todayViews: 0,
     totalViews: 0,
     history: {}
@@ -55,13 +56,22 @@ async function getMongoDb() {
   if (!uri) return null;
 
   if (cachedClient && cachedDb) {
-    return cachedDb;
+    try {
+      // Testar saúde da conexão antes de reutilizar
+      await cachedDb.command({ ping: 1 });
+      return cachedDb;
+    } catch (pingErr) {
+      console.warn('⚠️ Conexão MongoDB Atlas expirou ou foi fechada. Reconectando...');
+      cachedClient = null;
+      cachedDb = null;
+    }
   }
 
   try {
     const client = new MongoClient(uri, {
       serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 5000
+      connectTimeoutMS: 5000,
+      maxPoolSize: 10
     });
     await client.connect();
     cachedClient = client;
@@ -70,39 +80,68 @@ async function getMongoDb() {
     return cachedDb;
   } catch (err) {
     console.error('❌ Erro ao conectar ao MongoDB Atlas:', err.message);
+    cachedClient = null;
+    cachedDb = null;
     return null;
   }
 }
 
-// Leitura do arquivo local JSON
+// Leitura com prioridade para dados mais recentes gravados
 function readLocalFile() {
   try {
     if (memoryFallback) return memoryFallback;
 
+    // 1. Tentar ler de /tmp (área gravável no ambiente Vercel)
+    if (fs.existsSync(TMP_FILE_PATH)) {
+      const content = fs.readFileSync(TMP_FILE_PATH, 'utf8');
+      const parsed = JSON.parse(content);
+      if (parsed) {
+        memoryFallback = parsed;
+        return parsed;
+      }
+    }
+
+    // 2. Tentar ler de data/db.json
     if (fs.existsSync(DB_FILE_PATH)) {
       const content = fs.readFileSync(DB_FILE_PATH, 'utf8');
-      return JSON.parse(content);
+      const parsed = JSON.parse(content);
+      if (parsed) {
+        memoryFallback = parsed;
+        return parsed;
+      }
     }
   } catch (err) {
-    console.warn('⚠️ Erro ao ler db.json local:', err.message);
+    console.warn('⚠️ Erro ao ler arquivos locais de banco:', err.message);
   }
   return DEFAULT_DATA;
 }
 
-// Gravação no arquivo local JSON
+// Gravação resiliente em disco/memória
 function writeLocalFile(data) {
   memoryFallback = data;
+  let success = false;
+
+  // 1. Tentar gravar em data/db.json (funciona em dev / servidores normais)
   try {
     const dir = path.dirname(DB_FILE_PATH);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
     fs.writeFileSync(DB_FILE_PATH, JSON.stringify(data, null, 2), 'utf8');
-    return true;
+    success = true;
   } catch (err) {
-    console.warn('⚠️ Não foi possível gravar em db.json (sistema somente leitura). Mantido em memória temporária:', err.message);
-    return false;
+    // EROFS em ambiente serverless (Vercel)
   }
+
+  // 2. Gravar em /tmp (área temporária permitida na Vercel)
+  try {
+    fs.writeFileSync(TMP_FILE_PATH, JSON.stringify(data, null, 2), 'utf8');
+    success = true;
+  } catch (err) {
+    // Falha silenciosa em /tmp
+  }
+
+  return success;
 }
 
 function normalizeAppData(data) {
@@ -141,16 +180,18 @@ async function getAppData() {
           return normalizeAppData(cleanData);
         }
 
-        // Se for a primeira vez no MongoDB, popula com os dados iniciais locais
+        // Se for a primeira vez no MongoDB, popula com os dados locais
         const initialData = readLocalFile();
         await collection.updateOne(
           { _id: 'current_state' },
-          { $set: { ...initialData, updatedAt: new Date() } },
+          { $set: { ...initialData, updatedAt: new Date().toISOString() } },
           { upsert: true }
         );
         return normalizeAppData(initialData);
       } catch (err) {
-        console.error('❌ Erro ao consultar MongoDB, usando fallback:', err.message);
+        console.error('❌ Erro ao consultar MongoDB, usando fallback local:', err.message);
+        cachedClient = null;
+        cachedDb = null;
       }
     }
   }
@@ -162,12 +203,14 @@ async function getAppData() {
  * Salva os dados atualizados da plataforma
  */
 async function saveAppData(data) {
+  let savedInMongo = false;
+
   if (process.env.MONGODB_URI) {
     const db = await getMongoDb();
     if (db) {
       try {
         const collection = db.collection('app_data');
-        const updatePayload = { ...data, updatedAt: new Date() };
+        const updatePayload = { ...data, updatedAt: new Date().toISOString() };
         delete updatePayload._id;
 
         await collection.updateOne(
@@ -175,17 +218,38 @@ async function saveAppData(data) {
           { $set: updatePayload },
           { upsert: true }
         );
-        return true;
+        savedInMongo = true;
       } catch (err) {
         console.error('❌ Erro ao salvar no MongoDB:', err.message);
+        cachedClient = null;
+        cachedDb = null;
       }
     }
   }
 
-  return writeLocalFile(data);
+  const savedLocally = writeLocalFile(data);
+  return savedInMongo || savedLocally;
+}
+
+/**
+ * Informações sobre o status do armazenamento
+ */
+function getStorageStatus() {
+  const hasMongoConfig = !!(process.env.MONGODB_URI && process.env.MONGODB_URI.trim());
+  return {
+    mode: hasMongoConfig ? 'mongodb' : 'local',
+    connected: hasMongoConfig && !!cachedDb,
+    hasMongoConfig: hasMongoConfig,
+    message: hasMongoConfig 
+      ? (cachedDb ? 'MongoDB Atlas Conectado' : 'Conectando ao MongoDB Atlas...')
+      : 'Modo Local (Para persistência permanente na nuvem, adicione MONGODB_URI na Vercel)'
+  };
 }
 
 module.exports = {
   getAppData,
-  saveAppData
+  saveAppData,
+  writeLocalFile,
+  getMongoDb,
+  getStorageStatus
 };

@@ -8,7 +8,7 @@ const bcrypt = require('bcryptjs');
 const cloudinary = require('cloudinary').v2;
 require('dotenv').config();
 
-const { getAppData, saveAppData } = require('./db');
+const { getAppData, saveAppData, getMongoDb, writeLocalFile, getStorageStatus } = require('./db');
 
 const app = express();
 
@@ -88,7 +88,8 @@ app.get('/api/public/data', async (req, res) => {
     });
     res.json({
       success: true,
-      data: db
+      data: db,
+      storageStatus: getStorageStatus()
     });
   } catch (err) {
     console.error('Erro ao obter dados públicos:', err);
@@ -96,34 +97,41 @@ app.get('/api/public/data', async (req, res) => {
   }
 });
 
-// POST /api/analytics/pageview - Registrar visualização da página principal
+// POST /api/analytics/pageview - Registrar visualização da página principal de forma segura
 app.post('/api/analytics/pageview', async (req, res) => {
   try {
-    const db = await getAppData();
     const todayStr = getTodayBR();
 
-    db.analytics = db.analytics || {
-      today: todayStr,
-      todayViews: 0,
-      totalViews: 0,
-      history: {}
-    };
-
-    if (db.analytics.today !== todayStr) {
-      db.analytics.today = todayStr;
-      db.analytics.todayViews = 0;
+    // Se estiver conectado ao MongoDB, atualiza apenas o contador atômico sem reescrever o banco
+    if (process.env.MONGODB_URI) {
+      const db = await getMongoDb();
+      if (db) {
+        const collection = db.collection('app_data');
+        await collection.updateOne(
+          { _id: 'current_state' },
+          {
+            $set: { 'analytics.today': todayStr },
+            $inc: { 'analytics.todayViews': 1, 'analytics.totalViews': 1 }
+          }
+        );
+        return res.json({ success: true });
+      }
     }
 
-    db.analytics.todayViews = (db.analytics.todayViews || 0) + 1;
-    db.analytics.totalViews = (db.analytics.totalViews || 0) + 1;
-    db.analytics.history = db.analytics.history || {};
-    db.analytics.history[todayStr] = db.analytics.todayViews;
-
-    await saveAppData(db);
-    res.json({ success: true, todayViews: db.analytics.todayViews, totalViews: db.analytics.totalViews });
+    // Modo local: atualiza analytics sem risco
+    const localDb = await getAppData();
+    localDb.analytics = localDb.analytics || { today: todayStr, todayViews: 0, totalViews: 0, history: {} };
+    if (localDb.analytics.today !== todayStr) {
+      localDb.analytics.today = todayStr;
+      localDb.analytics.todayViews = 0;
+    }
+    localDb.analytics.todayViews = (localDb.analytics.todayViews || 0) + 1;
+    localDb.analytics.totalViews = (localDb.analytics.totalViews || 0) + 1;
+    writeLocalFile(localDb);
+    res.json({ success: true, todayViews: localDb.analytics.todayViews, totalViews: localDb.analytics.totalViews });
   } catch (err) {
-    console.error('Erro ao registrar pageview:', err);
-    res.status(500).json({ success: false, message: 'Erro ao registrar visualização.' });
+    // Falha silenciosa em analytics
+    res.json({ success: false });
   }
 });
 
@@ -373,7 +381,7 @@ app.post('/api/acoes', authenticateToken, async (req, res) => {
     }
 
     await saveAppData(db);
-    res.json({ success: true, message: 'Ação salva com sucesso!', data: novaAcao });
+    res.json({ success: true, message: 'Ação salva com sucesso!', data: novaAcao, fullDb: db });
   } catch (err) {
     console.error('Erro ao criar ação:', err);
     res.status(500).json({ success: false, message: 'Erro ao salvar ação.' });
@@ -475,7 +483,7 @@ app.put('/api/acoes/:id', authenticateToken, async (req, res) => {
     }
 
     await saveAppData(db);
-    res.json({ success: true, message: 'Ação atualizada com sucesso!', data: updatedItem });
+    res.json({ success: true, message: 'Ação atualizada com sucesso!', data: updatedItem, fullDb: db });
   } catch (err) {
     console.error('Erro ao editar ação:', err);
     res.status(500).json({ success: false, message: 'Erro ao atualizar ação.' });
@@ -492,7 +500,7 @@ app.delete('/api/acoes/:id', authenticateToken, async (req, res) => {
       db.destaque = {};
     }
     await saveAppData(db);
-    res.json({ success: true, message: 'Ação removida com sucesso.' });
+    res.json({ success: true, message: 'Ação removida com sucesso.', fullDb: db });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Erro ao remover ação.' });
   }
@@ -824,7 +832,7 @@ app.put('/api/config', authenticateToken, async (req, res) => {
       'Cache-Control': 'no-store, no-cache, must-revalidate',
       'Pragma': 'no-cache'
     });
-    res.json({ success: true, message: 'Configurações salvas com sucesso!', data: db.config });
+    res.json({ success: true, message: 'Configurações salvas com sucesso!', data: db.config, fullDb: db });
   } catch (err) {
     console.error('Erro ao salvar configurações:', err);
     res.status(500).json({ success: false, message: 'Erro ao salvar configurações.' });

@@ -1,13 +1,13 @@
 {
   "destaque": {
     "id": "destaque_1",
-    "titulo": "NOVA HILUX 4x4 + R$ 20 MIL",
+    "titulo": "Ação Principal",
     "subtitulo": "Apenas R$ 0,50 a cota.",
     "precoCota": "0,50",
-    "imagemUrl": "https://placehold.co/800x1000/111827/ca8a04?text=FOTO+DA+AÇÃO\n(FLYER+AQUI)",
+    "imagemUrl": "",
     "statusBadge": "Encerrando em breve!",
     "linkCheckout": "https://wa.me/5500000000000",
-    "porcentagemVendido": 85
+    "porcentagemVendido": 0
   },
   "acoes": [
     {
@@ -27,7 +27,7 @@
       "imagemUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&auto=format&fit=crop&q=80",
       "porcentagemVendido": 100,
       "localExibicao": "Aba: Relâmpago",
-      "acaoVinculada": "NOVA HILUX 4x4 + R$ 20 MIL",
+      "acaoVinculada": "Ação Principal",
       "linkCheckout": "https://wa.me/5500000000000",
       "status": "ativa"
     }

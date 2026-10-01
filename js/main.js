@@ -39,6 +39,24 @@ async function fetchPublicData() {
     if (!res.ok) throw new Error('Falha ao carregar dados da API');
     const json = await res.json();
     if (json.success && json.data) {
+      // Proteger edições customizadas contra fallbacks padrão
+      const cachedRaw = localStorage.getItem('caputo_app_data');
+      if (cachedRaw) {
+        try {
+          const cached = JSON.parse(cachedRaw);
+          if (cached && cached.config && cached.config.whatsappUrl && !cached.config.whatsappUrl.includes('5500000000000')) {
+            if (!json.data.config || !json.data.config.whatsappUrl || json.data.config.whatsappUrl.includes('5500000000000')) {
+              json.data.config = json.data.config || {};
+              json.data.config.whatsappUrl = cached.config.whatsappUrl;
+            }
+          }
+          if (cached && cached.destaque && cached.destaque.titulo && cached.destaque.titulo !== 'Ação Principal') {
+            if (!json.data.destaque || !json.data.destaque.titulo || json.data.destaque.titulo === 'Ação Principal') {
+              json.data.destaque = cached.destaque;
+            }
+          }
+        } catch (e) {}
+      }
       try {
         localStorage.setItem('caputo_app_data', JSON.stringify(json.data));
       } catch (storageErr) {}

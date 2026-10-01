@@ -129,6 +129,9 @@ async function loadAdminData() {
     });
     const json = await res.json();
     if (json.success && json.data) {
+      if (json.storageStatus) {
+        renderStorageStatus(json.storageStatus);
+      }
       try {
         localStorage.setItem('caputo_app_data', JSON.stringify(json.data));
       } catch (storageErr) {}
@@ -141,6 +144,34 @@ async function loadAdminData() {
   } catch (err) {
     console.error('Erro ao carregar dados do painel:', err);
     showToast('Falha ao sincronizar dados do servidor.', 'error');
+  }
+}
+
+function renderStorageStatus(status) {
+  const container = document.getElementById('storage-status-container');
+  if (!container || !status) return;
+
+  if (status.connected) {
+    container.innerHTML = `
+      <div class="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>MongoDB Atlas Conectado</span>
+      </div>
+    `;
+  } else if (status.hasMongoConfig) {
+    container.innerHTML = `
+      <div class="inline-flex items-center gap-2 bg-amber-50 border border-amber-300 text-amber-900 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm" title="Tentando conectar ao MongoDB Atlas">
+        <i class="ph-bold ph-spinner animate-spin text-amber-600"></i>
+        <span>Conectando ao MongoDB...</span>
+      </div>
+    `;
+  } else {
+    container.innerHTML = `
+      <div class="inline-flex items-center gap-2 bg-amber-50 border border-amber-300 text-amber-900 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm cursor-help" title="Para salvar alterações permanentemente na Vercel, adicione a variável MONGODB_URI nas configurações do seu projeto na Vercel.">
+        <i class="ph-bold ph-cloud-slash text-amber-600 text-sm"></i>
+        <span>Modo Local / Cache Ativo</span>
+      </div>
+    `;
   }
 }
 
@@ -829,7 +860,15 @@ async function submitNovaAcao(event) {
       if (vinculadaReset) vinculadaReset.value = '';
       if (typeof toggleAcaoVinculadaField === 'function') toggleAcaoVinculadaField('');
       currentEditState.acao = null;
-      loadAdminData();
+      if (json.fullDb) {
+        window.adminDataCache = json.fullDb;
+        try {
+          localStorage.setItem('caputo_app_data', JSON.stringify(json.fullDb));
+        } catch (e) {}
+        renderAdminDashboard(json.fullDb);
+      } else {
+        loadAdminData();
+      }
     } else {
       showToast(json.message || 'Erro ao salvar ação.', 'error');
     }
@@ -855,7 +894,15 @@ async function deleteAcaoItem(id) {
     const json = await res.json();
     if (json.success) {
       showToast('Ação removida.', 'success');
-      loadAdminData();
+      if (json.fullDb) {
+        window.adminDataCache = json.fullDb;
+        try {
+          localStorage.setItem('caputo_app_data', JSON.stringify(json.fullDb));
+        } catch (e) {}
+        renderAdminDashboard(json.fullDb);
+      } else {
+        loadAdminData();
+      }
     }
   } catch (err) {
     showToast('Erro ao remover ação.', 'error');
@@ -1116,12 +1163,17 @@ async function submitConfiguracoes(event) {
     const json = await res.json();
     if (json.success) {
       showToast('Configurações salvas com sucesso!', 'success');
-      if (json.data) {
-        if (window.adminDataCache) window.adminDataCache.config = json.data;
-        if (whatsappInput && json.data.whatsappUrl) whatsappInput.value = json.data.whatsappUrl;
-        if (instagramInput && json.data.instagramUrl) instagramInput.value = json.data.instagramUrl;
+      if (json.fullDb) {
+        window.adminDataCache = json.fullDb;
+        try {
+          localStorage.setItem('caputo_app_data', JSON.stringify(json.fullDb));
+        } catch (e) {}
+        renderAdminDashboard(json.fullDb);
+      } else if (json.data && window.adminDataCache) {
+        window.adminDataCache.config = json.data;
       }
-      loadAdminData();
+      if (whatsappInput && json.data && json.data.whatsappUrl) whatsappInput.value = json.data.whatsappUrl;
+      if (instagramInput && json.data && json.data.instagramUrl) instagramInput.value = json.data.instagramUrl;
     } else {
       showToast(json.message || 'Erro ao salvar configurações.', 'error');
     }

@@ -83,7 +83,7 @@ app.get('/api/public/data', async (req, res) => {
       db.videos = sortVideosChronological(db.videos);
     }
     res.set({
-      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=30',
       'Pragma': 'no-cache'
     });
     res.json({
@@ -467,7 +467,8 @@ app.put('/api/acoes/:id', authenticateToken, async (req, res) => {
         precoCota: updatedItem.precoCota,
         imagemUrl: updatedItem.imagemUrl,
         porcentagemVendido: updatedItem.porcentagemVendido,
-        localExibicao: 'Aba: Ativas',
+        localExibicao: targetLocation || 'Aba: Ativas',
+        acaoVinculada: updatedItem.acaoVinculada ? String(updatedItem.acaoVinculada).trim() : '',
         linkCheckout: updatedItem.linkCheckout,
         status: 'ativa'
       });

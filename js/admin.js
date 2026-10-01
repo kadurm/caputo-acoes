@@ -13,6 +13,15 @@ async function initAdmin() {
     return;
   }
 
+  // Hidratação imediata (0ms) a partir do cache local se disponível
+  try {
+    const cached = localStorage.getItem('caputo_app_data');
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed) renderAdminDashboard(parsed);
+    }
+  } catch (e) {}
+
   try {
     const res = await fetch('/api/auth/verify', {
       headers: { 'Authorization': `Bearer ${authToken}` }
@@ -120,6 +129,9 @@ async function loadAdminData() {
     });
     const json = await res.json();
     if (json.success && json.data) {
+      try {
+        localStorage.setItem('caputo_app_data', JSON.stringify(json.data));
+      } catch (storageErr) {}
       renderAdminDashboard(json.data);
     }
     // Sincronizar dados financeiros via API autenticada
@@ -154,9 +166,9 @@ function renderAdminDashboard(db) {
   if (statVideos) statVideos.textContent = totalVideos;
 
   // Update Highlight Banner Card in Dashboard
-  if (db.destaque && db.destaque.titulo) {
-    const highlightCard = document.querySelector('#view-dashboard .bg-white.rounded-2xl .flex.flex-col');
-    if (highlightCard) {
+  const highlightCard = document.getElementById('dashboard-destaque-container') || document.querySelector('#view-dashboard .bg-white.rounded-2xl .flex.flex-col');
+  if (highlightCard) {
+    if (db.destaque && db.destaque.titulo) {
       highlightCard.innerHTML = `
         <div class="flex items-center gap-4 w-full sm:w-auto">
             <img src="${db.destaque.imagemUrl}" class="w-16 h-16 rounded-xl object-cover shadow-sm border border-gray-200">
@@ -169,6 +181,21 @@ function renderAdminDashboard(db) {
             Editar Ação
         </button>
       `;
+    } else {
+      highlightCard.innerHTML = `
+        <div class="flex items-center gap-4 w-full sm:w-auto">
+            <div class="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400">
+                <i class="ph ph-star text-2xl"></i>
+            </div>
+            <div>
+                <h4 class="font-bold text-gray-700">Nenhum Destaque Definido</h4>
+                <p class="text-sm text-gray-500">Defina uma ação como Destaque Principal</p>
+            </div>
+        </div>
+        <button onclick="switchView('acoes', document.querySelectorAll('.nav-btn')[1])" class="w-full sm:w-auto px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+            Gerenciar Ações
+        </button>
+      `;
     }
   }
 
@@ -178,7 +205,7 @@ function renderAdminDashboard(db) {
   }
 
   // Render Table: Ações
-  const acoesTbody = document.querySelector('#view-acoes table tbody');
+  const acoesTbody = document.getElementById('acoes-table-tbody') || document.querySelector('#view-acoes table tbody');
   if (acoesTbody) {
     let rowsHtml = '';
     
@@ -238,7 +265,13 @@ function renderAdminDashboard(db) {
       `).join('');
     }
 
-    acoesTbody.innerHTML = rowsHtml;
+    acoesTbody.innerHTML = rowsHtml || `
+      <tr>
+        <td colspan="4" class="p-8 text-center text-gray-400 text-sm">
+          Nenhuma ação cadastrada no momento. Clique em "+ Nova Ação" acima para adicionar.
+        </td>
+      </tr>
+    `;
   }
 
   // Render Grid: Ganhadores
@@ -742,7 +775,7 @@ async function submitNovaAcao(event) {
   const manualUrl = urlInput ? urlInput.value.trim() : '';
   const imagemUrl = uploadedImageUrls['modal-acao'] || manualUrl || existingItem.imagemUrl || 'https://placehold.co/400x500/111827/ca8a04?text=FOTO+AÇÃO';
 
-  const tituloEl = document.getElementById('acao-titulo') || event.target.querySelector('input[placeholder*="HILUX"]');
+  const tituloEl = document.getElementById('acao-titulo') || event.target.querySelector('input[placeholder*="Título"]') || event.target.querySelector('input[type="text"]');
   const precoEl = document.getElementById('acao-preco') || event.target.querySelector('input[placeholder="0,50"]');
   const localEl = document.getElementById('acao-local') || event.target.querySelector('select');
   const porcentagemEl = document.getElementById('acao-porcentagem');

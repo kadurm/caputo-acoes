@@ -84,24 +84,14 @@
     <main class="max-w-md mx-auto">
 
         <!-- HIGHLIGHT/FLYER SECTION (Always visible at the top) -->
-        <section class="bg-white p-4 pb-6 shadow-sm mb-2">
-            <div class="relative w-full aspect-[4/5] rounded-2xl overflow-hidden shadow-lg border border-gray-200 bg-gray-900 group">
-                <!-- Placeholder for the main flyer image -->
-                <img src="https://placehold.co/800x1000/111827/ca8a04?text=FOTO+DA+AÇÃO\n(FLYER+AQUI)" alt="Flyer Ação Principal" class="w-full h-full object-cover">
-                
-                <!-- Overlay Gradient -->
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4">
-                    <span class="bg-red-600 text-white text-xs font-bold uppercase px-3 py-1 rounded-full w-max mb-2 animate-pulse-slow">
-                        Encerrando em breve!
-                    </span>
-                    <h3 class="text-white font-bold text-2xl leading-tight mb-1 shadow-black drop-shadow-md">NOVA HILUX 4x4 + R$ 20 MIL</h3>
-                    <p class="text-gray-300 text-sm mb-4">Apenas R$ 0,50 a cota.</p>
-                    
-                    <!-- HUGE CTA BUTTON -->
-                    <a id="btn-comprar-destaque" href="https://wa.me/5500000000000" target="_blank" class="w-full bg-brand-action hover:bg-green-500 text-white font-bold text-lg py-4 rounded-xl shadow-[0_4px_0_0_#14532d] active:shadow-[0_0px_0_0_#14532d] active:translate-y-1 transition-all flex items-center justify-center gap-2">
-                        <i class="ph ph-shopping-cart text-2xl"></i>
-                        COMPRAR NÚMEROS
-                    </a>
+        <section id="destaque-section" class="bg-white p-4 pb-6 shadow-sm mb-2">
+            <div id="destaque-container" class="relative w-full aspect-[4/5] rounded-2xl overflow-hidden shadow-lg border border-gray-200 bg-gray-900 group">
+                <!-- Skeleton loader inicial discreto e neutro (sem textos falsos) -->
+                <div class="w-full h-full animate-pulse bg-gradient-to-b from-gray-800 to-gray-950 flex flex-col justify-end p-4">
+                    <div class="h-5 bg-gray-700/80 rounded-full w-36 mb-3"></div>
+                    <div class="h-8 bg-gray-700/80 rounded-lg w-3/4 mb-2"></div>
+                    <div class="h-4 bg-gray-700/80 rounded w-1/2 mb-4"></div>
+                    <div class="h-14 bg-emerald-700/50 rounded-xl w-full"></div>
                 </div>
             </div>
         </section>
@@ -132,23 +122,14 @@
                     <h3 class="font-bold text-lg text-brand-dark">Ações Disponíveis</h3>
                 </div>
 
-                <div class="space-y-4">
-                    <!-- Action Card -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                        <div class="flex p-3 gap-4">
-                            <div class="w-24 h-24 rounded-xl bg-gray-200 flex-shrink-0 overflow-hidden">
-                                <img src="https://placehold.co/200x200/111827/ca8a04?text=IPHONE" alt="Iphone 15" class="w-full h-full object-cover">
-                            </div>
-                            <div class="flex flex-col justify-center flex-1">
-                                <span class="text-[10px] font-bold text-green-700 uppercase tracking-wider mb-1">Cotas Disponíveis</span>
-                                <h4 class="font-bold text-gray-900 leading-tight mb-1">iPhone 15 Pro Max 256GB</h4>
-                                <p class="text-xs text-gray-500 mb-1">Por apenas R$ 0,10</p>
-                            </div>
-                        </div>
-                        <div class="p-3 bg-gray-50 border-t border-gray-100">
-                            <a href="https://wa.me/5500000000000" target="_blank" class="w-full bg-brand-dark hover:bg-black text-white font-bold py-2.5 rounded-lg text-sm shadow flex items-center justify-center gap-2 transition-colors">
-                                PARTICIPAR AGORA <i class="ph-bold ph-arrow-right"></i>
-                            </a>
+                <div id="lista-acoes-ativas" class="space-y-4">
+                    <!-- Skeleton loader inicial para ações ativas (sem dados fictícios) -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-3 flex gap-4 animate-pulse">
+                        <div class="w-24 h-24 rounded-xl bg-gray-200 flex-shrink-0"></div>
+                        <div class="flex flex-col justify-center flex-1 space-y-2">
+                            <div class="h-3 bg-gray-200 rounded w-1/3"></div>
+                            <div class="h-5 bg-gray-200 rounded w-3/4"></div>
+                            <div class="h-3 bg-gray-200 rounded w-1/4"></div>
                         </div>
                     </div>
                 </div>
@@ -267,7 +248,37 @@
             window.scrollTo({top: y, behavior: 'smooth'});
         }
     </script>
+    <!-- PRÉ-CARREGAMENTO INSTANTÂNEO VIA CACHE LOCAL (0ms) -->
+    <script>
+        (function() {
+            try {
+                var raw = localStorage.getItem('caputo_app_data');
+                if (raw) {
+                    var db = JSON.parse(raw);
+                    if (db && db.destaque && db.destaque.titulo) {
+                        var sec = document.getElementById('destaque-section') || document.querySelector('main section:first-of-type');
+                        var d = db.destaque;
+                        var sub = (d.subtitulo || ('Apenas R$ ' + d.precoCota + ' a cota.')).replace(/\.?\s*Loteria Federal\.?/gi, '').trim();
+                        var link = d.linkCheckout || (db.config && db.config.whatsappUrl) || 'https://wa.me/5500000000000';
+                        if (sec) {
+                            sec.innerHTML = '<div id="destaque-container" class="relative w-full aspect-[4/5] rounded-2xl overflow-hidden shadow-lg border border-gray-200 bg-gray-900 group">' +
+                                '<img src="' + d.imagemUrl + '" alt="' + d.titulo + '" class="w-full h-full object-cover">' +
+                                '<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4">' +
+                                    '<span class="bg-red-600 text-white text-xs font-bold uppercase px-3 py-1 rounded-full w-max mb-2 animate-pulse-slow">' + (d.statusBadge || 'Encerrando em breve!') + '</span>' +
+                                    '<h3 class="text-white font-bold text-2xl leading-tight mb-1 shadow-black drop-shadow-md">' + d.titulo + '</h3>' +
+                                    '<p class="text-gray-300 text-sm mb-4">' + sub + '</p>' +
+                                    '<a id="btn-comprar-destaque" href="' + link + '" target="_blank" class="w-full bg-brand-action hover:bg-green-500 text-white font-bold text-lg py-4 rounded-xl shadow-[0_4px_0_0_#14532d] active:shadow-[0_0px_0_0_#14532d] active:translate-y-1 transition-all flex items-center justify-center gap-2">' +
+                                        '<i class="ph ph-shopping-cart text-2xl"></i> COMPRAR NÚMEROS' +
+                                    '</a>' +
+                                '</div>' +
+                            '</div>';
+                        }
+                    }
+                }
+            } catch (e) {}
+        })();
+    </script>
     <!-- JAVASCRIPT DINÂMICO DA API -->
-    <script src="/js/main.js?v=20260922_05"></script>
+    <script src="/js/main.js?v=20261001_01"></script>
 </body>
 </html>

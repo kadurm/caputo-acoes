@@ -1,3 +1,22 @@
+// Hidratação síncrona imediata a partir do cache local para eliminar atraso (0ms)
+(function hydrateFromCacheImmediately() {
+  try {
+    const cached = localStorage.getItem('caputo_app_data');
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed) {
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => {
+            renderPageData(parsed);
+          }, { once: true });
+        } else {
+          renderPageData(parsed);
+        }
+      }
+    }
+  } catch (e) {}
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
   fetchPublicData();
   recordPageView();
@@ -20,14 +39,22 @@ async function fetchPublicData() {
     if (!res.ok) throw new Error('Falha ao carregar dados da API');
     const json = await res.json();
     if (json.success && json.data) {
+      try {
+        localStorage.setItem('caputo_app_data', JSON.stringify(json.data));
+      } catch (storageErr) {}
       renderPageData(json.data);
     }
   } catch (err) {
-    console.warn('Usando dados estáticos de fallback:', err);
+    console.warn('Usando dados estáticos de fallback/cache:', err);
   }
 }
 
 function renderPageData(db) {
+  // Salvar no cache local para carregamento instantâneo
+  try {
+    localStorage.setItem('caputo_app_data', JSON.stringify(db));
+  } catch (e) {}
+
   // WhatsApp definido em Configurações para compras, participação e atendimento
   const whatsappSuporte = (db.config && db.config.whatsappUrl && db.config.whatsappUrl.trim())
     ? db.config.whatsappUrl.trim()
@@ -50,8 +77,8 @@ function renderPageData(db) {
   }
 
   // 1. Render Destaque (Flyer Principal) - Botão COMPRAR NÚMEROS
+  const destaqueSection = document.getElementById('destaque-section') || document.querySelector('main section:first-of-type');
   if (db.destaque && db.destaque.titulo) {
-    const destaqueSection = document.querySelector('main section:first-of-type');
     const linkComprar = getWhatsAppActionLink(db.destaque, whatsappSuporte, db.destaque.titulo);
     const subtituloLimpo = (db.destaque.subtitulo || `Apenas R$ ${db.destaque.precoCota} a cota.`)
       .replace(/\.?\s*Sorteio pela Loteria Federal\.?/gi, '')
@@ -60,7 +87,7 @@ function renderPageData(db) {
 
     if (destaqueSection) {
       destaqueSection.innerHTML = `
-        <div class="relative w-full aspect-[4/5] rounded-2xl overflow-hidden shadow-lg border border-gray-200 bg-gray-900 group">
+        <div id="destaque-container" class="relative w-full aspect-[4/5] rounded-2xl overflow-hidden shadow-lg border border-gray-200 bg-gray-900 group">
             <img src="${db.destaque.imagemUrl}" alt="${db.destaque.titulo}" class="w-full h-full object-cover">
             
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4">
@@ -82,14 +109,14 @@ function renderPageData(db) {
     // Fallback: se não renderizar destaque via JS, atualizar o botão existente
     const btnComprar = document.getElementById('btn-comprar-destaque');
     if (btnComprar && whatsappSuporte) {
-      btnComprar.href = getWhatsAppActionLink(null, whatsappSuporte, 'Nova Hilux');
+      btnComprar.href = getWhatsAppActionLink(null, whatsappSuporte, 'Ação Principal');
     }
   }
 
   // 2. Render Ações Ativas - Botão PARTICIPAR AGORA
   const todasAcoes = db.acoes || [];
   const acoesAtivas = todasAcoes.filter(a => a.localExibicao !== 'Aba: Relâmpago' && a.localExibicao !== 'Aba: Encerradas');
-  const tabAtivasContainer = document.querySelector('#tab-ativas .space-y-4');
+  const tabAtivasContainer = document.getElementById('lista-acoes-ativas') || document.querySelector('#tab-ativas .space-y-4');
   
   if (tabAtivasContainer) {
     if (acoesAtivas.length > 0) {

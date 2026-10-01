@@ -382,7 +382,6 @@ app.post('/api/acoes', authenticateToken, async (req, res) => {
       imagemUrl: (req.body.imagemUrl && req.body.imagemUrl.trim()) ? req.body.imagemUrl.trim() : defaultImg,
       porcentagemVendido: Number(req.body.porcentagemVendido) || 0,
       localExibicao: req.body.localExibicao || 'Aba: Ativas',
-      acaoVinculada: req.body.acaoVinculada ? String(req.body.acaoVinculada).trim() : '',
       linkCheckout: req.body.linkCheckout || 'https://wa.me/5500000000000',
       status: 'ativa'
     };
@@ -456,7 +455,6 @@ app.put('/api/acoes/:id', authenticateToken, async (req, res) => {
       imagemUrl: req.body.imagemUrl || currentItem.imagemUrl,
       porcentagemVendido: req.body.porcentagemVendido !== undefined ? Number(req.body.porcentagemVendido) : (currentItem.porcentagemVendido || 0),
       localExibicao: req.body.localExibicao || currentItem.localExibicao || (fromWhere === 'destaque' ? 'Destaque Principal (Banner Topo)' : 'Aba: Ativas'),
-      acaoVinculada: req.body.acaoVinculada !== undefined ? String(req.body.acaoVinculada).trim() : (currentItem.acaoVinculada || ''),
       linkCheckout: req.body.linkCheckout !== undefined ? req.body.linkCheckout : (currentItem.linkCheckout || 'https://wa.me/5500000000000')
     };
 
@@ -505,7 +503,6 @@ app.put('/api/acoes/:id', authenticateToken, async (req, res) => {
         imagemUrl: updatedItem.imagemUrl,
         porcentagemVendido: updatedItem.porcentagemVendido,
         localExibicao: targetLocation || 'Aba: Ativas',
-        acaoVinculada: updatedItem.acaoVinculada ? String(updatedItem.acaoVinculada).trim() : '',
         linkCheckout: updatedItem.linkCheckout,
         status: 'ativa'
       });

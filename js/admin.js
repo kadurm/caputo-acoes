@@ -950,14 +950,7 @@ function openEditAcao(id) {
   const precoInput = document.getElementById('acao-preco');
   if (precoInput) precoInput.value = acao.precoCota || '';
   const localSelect = document.getElementById('acao-local');
-  if (localSelect) {
-    localSelect.value = localExibicao;
-    if (typeof toggleAcaoVinculadaField === 'function') {
-      toggleAcaoVinculadaField(localExibicao);
-    }
-  }
-  const vinculadaInput = document.getElementById('acao-vinculada');
-  if (vinculadaInput) vinculadaInput.value = acao.acaoVinculada || '';
+  if (localSelect) localSelect.value = localExibicao;
   const checkoutInput = document.getElementById('acao-checkout');
   if (checkoutInput) checkoutInput.value = acao.linkCheckout || '';
 
@@ -1089,13 +1082,11 @@ async function submitNovaAcao(event) {
   const precoEl = document.getElementById('acao-preco') || event.target.querySelector('input[placeholder="0,50"]');
   const porcentagemEl = document.getElementById('acao-porcentagem');
   const checkoutEl = document.getElementById('acao-checkout') || event.target.querySelector('input[type="url"]');
-  const vinculadaEl = document.getElementById('acao-vinculada');
 
   const payload = {
     titulo: tituloEl ? tituloEl.value.trim() : '',
     precoCota: precoEl ? precoEl.value.trim() : '',
     localExibicao: localEl ? localEl.value : 'Aba: Ativas',
-    acaoVinculada: vinculadaEl ? vinculadaEl.value.trim() : '',
     porcentagemVendido: porcentagemEl ? (Number(porcentagemEl.value) || 0) : (existingItem.porcentagemVendido || 0),
     linkCheckout: checkoutEl ? checkoutEl.value.trim() : '',
     imagemUrl: imagemUrl,
@@ -1131,13 +1122,10 @@ async function submitNovaAcao(event) {
       const previewContainer = document.getElementById('acao-preview-container');
       const fileText = document.getElementById('acao-file-text');
       const urlInputReset = document.getElementById('acao-imagem-url');
-      const vinculadaReset = document.getElementById('acao-vinculada');
       if (imgPreview) imgPreview.src = '';
       if (previewContainer) previewContainer.classList.add('hidden');
       if (fileText) fileText.textContent = 'Clique para selecionar imagem';
       if (urlInputReset) urlInputReset.value = '';
-      if (vinculadaReset) vinculadaReset.value = '';
-      if (typeof toggleAcaoVinculadaField === 'function') toggleAcaoVinculadaField('');
       currentEditState.acao = null;
       if (json.fullDb) {
         json.fullDb.updatedAt = new Date().toISOString();

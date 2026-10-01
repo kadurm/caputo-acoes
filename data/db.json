@@ -22,12 +22,11 @@
     },
     {
       "id": "acao_relampago_1",
-      "titulo": "Bilhete Premiado: iPhone 16 Pro",
+      "titulo": "iPhone 16 Pro (Relâmpago)",
       "precoCota": "0,50",
       "imagemUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&auto=format&fit=crop&q=80",
       "porcentagemVendido": 100,
       "localExibicao": "Aba: Relâmpago",
-      "acaoVinculada": "Nova Hilux",
       "linkCheckout": "https://wa.me/5500000000000",
       "status": "ativa"
     }

@@ -240,7 +240,7 @@ const DEFAULT_CARD_IMG = 'https://images.unsplash.com/photo-1552519507-da3b142c6
     }
   }
 
-  // 3. Render Ações Relâmpago (Bilhetes Premiados) - Botão GARANTIR NÚMEROS
+  // 3. Render Ações Relâmpago - Botão GARANTIR NÚMEROS
   const acoesRelampago = [
     ...(db.relampagos || []),
     ...todasAcoes.filter(a => a.localExibicao === 'Aba: Relâmpago')
@@ -252,14 +252,6 @@ const DEFAULT_CARD_IMG = 'https://images.unsplash.com/photo-1552519507-da3b142c6
       tabRelampagoContainer.innerHTML = acoesRelampago.map(acao => {
         const linkAcao = getWhatsAppActionLink(acao, whatsappSuporte, acao.titulo);
         const imgSrcRelampago = (acao.imagemUrl && acao.imagemUrl.trim()) ? acao.imagemUrl.trim() : DEFAULT_CARD_IMG;
-
-        const tagVinculada = acao.acaoVinculada
-          ? `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded-md mt-1 mb-2 border border-amber-200/50">
-               <i class="ph-bold ph-link text-xs text-amber-700"></i> ${acao.acaoVinculada}
-             </span>`
-          : `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded-md mt-1 mb-2 border border-amber-200/50">
-               <i class="ph-fill ph-lightning text-xs text-amber-600"></i> Resultado Rápido
-             </span>`;
 
         return `
         <div class="bg-white rounded-2xl shadow-sm border border-amber-200/70 overflow-hidden hover:shadow-md transition-shadow">
@@ -274,7 +266,9 @@ const DEFAULT_CARD_IMG = 'https://images.unsplash.com/photo-1552519507-da3b142c6
                         </span>
                     </div>
                     <h4 class="font-bold text-gray-900 leading-tight mb-0.5">${acao.titulo}</h4>
-                    ${tagVinculada}
+                    <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded-md mt-1 mb-2 border border-amber-200/50 w-max">
+                        <i class="ph-fill ph-lightning text-xs text-amber-600"></i> Poucos Números • Sorteio Rápido
+                    </span>
                     <p class="text-xs font-bold text-gray-700">Cota: R$ ${acao.precoCota}</p>
                 </div>
             </div>
@@ -293,7 +287,7 @@ const DEFAULT_CARD_IMG = 'https://images.unsplash.com/photo-1552519507-da3b142c6
                 <i class="ph-fill ph-lightning"></i>
             </div>
             <h4 class="font-bold text-gray-800 text-base mb-1">Nenhuma Ação Relâmpago ativa no momento</h4>
-            <p class="text-xs text-gray-500 max-w-xs mx-auto">Novas ações relâmpago e bilhetes premiados são lançados a qualquer momento. Acompanhe nossas redes!</p>
+            <p class="text-xs text-gray-500 max-w-xs mx-auto">Novas ações relâmpago são lançadas a qualquer momento. Fique atento para garantir seus números!</p>
         </div>
       `;
     }

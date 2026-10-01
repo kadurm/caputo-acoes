@@ -159,16 +159,16 @@
 
         <!-- Navigation -->
         <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-            <button onclick="switchView('dashboard', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 bg-brand-dark text-white rounded-xl font-medium transition-all shadow-md">
+            <button onclick="switchView('dashboard', this)" data-view="dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 bg-brand-dark text-white rounded-xl font-medium transition-all shadow-md">
                 <i class="ph ph-squares-four text-xl"></i> Dashboard
             </button>
-            <button onclick="switchView('acoes', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl font-medium transition-all">
+            <button onclick="switchView('acoes', this)" data-view="acoes" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl font-medium transition-all">
                 <i class="ph ph-target text-xl"></i> Gerenciar Ações
             </button>
-            <button onclick="switchView('videos', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl font-medium transition-all">
+            <button onclick="switchView('videos', this)" data-view="videos" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl font-medium transition-all">
                 <i class="ph ph-trophy text-xl"></i> Resultados
             </button>
-            <button onclick="switchView('configuracoes', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl font-medium transition-all">
+            <button onclick="switchView('configuracoes', this)" data-view="configuracoes" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl font-medium transition-all">
                 <i class="ph ph-gear text-xl"></i> Configurações
             </button>
         </nav>
@@ -194,10 +194,24 @@
     <main class="flex-1 flex flex-col h-full overflow-hidden bg-gray-100">
         
         <!-- Mobile Header -->
-        <header class="bg-white shadow-sm px-4 py-3 mobile-header-safe flex items-center justify-end md:hidden z-30 border-b border-gray-200">
-            <button onclick="toggleSidebar()" class="text-gray-600 hover:text-black focus:outline-none bg-gray-50 p-2 rounded-lg" aria-label="Abrir menu">
-                <i class="ph ph-list text-2xl"></i>
+        <header class="bg-white shadow-sm px-4 py-2.5 mobile-header-safe flex items-center justify-between md:hidden z-30 border-b border-gray-200">
+            <!-- Botão Menu Lateral -->
+            <button type="button" onclick="openSidebar()" class="flex items-center gap-2 px-3 py-1.5 bg-brand-dark hover:bg-black text-white text-xs font-bold rounded-xl shadow-sm transition-transform active:scale-95" aria-label="Abrir menu lateral">
+                <i class="ph-bold ph-list text-lg text-amber-400"></i>
+                <span>Menu</span>
             </button>
+
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-1.5 select-none">
+                <img src="images/logo_caputo_dark.png" alt="Caputo Ações" class="h-6 w-auto object-contain">
+                <span class="text-[9px] font-extrabold uppercase tracking-widest bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded border border-gray-200">ADMIN</span>
+            </div>
+
+            <!-- Botão Ver Site -->
+            <a href="/" target="_blank" class="flex items-center gap-1 px-2.5 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg border border-gray-200 transition-colors">
+                <i class="ph-bold ph-arrow-square-out text-sm text-gray-600"></i>
+                <span class="text-[11px] font-medium hidden xs:inline">Ver Site</span>
+            </a>
         </header>
 
         <!-- Dynamic Content Area -->
@@ -514,6 +528,30 @@
             </div>
 
         </div>
+
+        <!-- Barra de Navegação Inferior Mobile -->
+        <nav id="mobile-bottom-bar" class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 px-1 py-1.5 flex items-center justify-around z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom));">
+            <button id="mobile-nav-dashboard" onclick="switchView('dashboard')" class="mobile-nav-btn flex-1 flex flex-col items-center gap-0.5 py-1 text-amber-500 font-bold text-[10px] transition-colors" aria-label="Dashboard">
+                <i class="ph-bold ph-squares-four text-xl"></i>
+                <span>Início</span>
+            </button>
+            <button id="mobile-nav-acoes" onclick="switchView('acoes')" class="mobile-nav-btn flex-1 flex flex-col items-center gap-0.5 py-1 text-gray-500 text-[10px] transition-colors" aria-label="Gerenciar Ações">
+                <i class="ph-bold ph-target text-xl"></i>
+                <span>Ações</span>
+            </button>
+            <button id="mobile-nav-videos" onclick="switchView('videos')" class="mobile-nav-btn flex-1 flex flex-col items-center gap-0.5 py-1 text-gray-500 text-[10px] transition-colors" aria-label="Resultados">
+                <i class="ph-bold ph-trophy text-xl"></i>
+                <span>Resultados</span>
+            </button>
+            <button id="mobile-nav-configuracoes" onclick="switchView('configuracoes')" class="mobile-nav-btn flex-1 flex flex-col items-center gap-0.5 py-1 text-gray-500 text-[10px] transition-colors" aria-label="Configurações">
+                <i class="ph-bold ph-gear text-xl"></i>
+                <span>Ajustes</span>
+            </button>
+            <button type="button" onclick="openSidebar()" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-gray-800 hover:text-black text-[10px] transition-colors font-bold" aria-label="Menu Lateral">
+                <i class="ph-bold ph-list text-xl text-amber-500"></i>
+                <span>Menu</span>
+            </button>
+        </nav>
     </main>
 
     <!-- MODAL OVERLAY BASE -->
@@ -712,6 +750,56 @@
                     </button>
                 </div>
             </form>
+        <!-- MODAL: INFO SOBRE ARMAZENAMENTO / MODO LOCAL / MONGODB -->
+        <div id="modal-storage-info" class="modal-content modal-body-scroll hidden bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b border-gray-100 p-5 flex justify-between items-center z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-lg">
+                        <i class="ph-bold ph-database"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-gray-900">Armazenamento & Nuvem</h3>
+                        <p class="text-xs text-gray-500">Status dos dados do Caputo Ações</p>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 p-2 rounded-lg transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+            <div class="p-6 space-y-4 text-sm text-gray-600">
+                <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                    <h4 class="font-bold text-amber-900 text-sm flex items-center gap-2 mb-1">
+                        <i class="ph-bold ph-info text-amber-700 text-base"></i> O que é "Modo Local / Cache Ativo"?
+                    </h4>
+                    <p class="text-xs text-amber-800 leading-relaxed">
+                        Indica que o painel está funcionando salvando as ações no arquivo local (<code class="bg-amber-100 px-1 py-0.5 rounded text-amber-900 font-mono">db.json</code>) e na memória do navegador.
+                    </p>
+                </div>
+
+                <div class="space-y-1.5">
+                    <h4 class="font-bold text-gray-800 text-xs uppercase tracking-wider">Como funciona na Vercel?</h4>
+                    <p class="text-xs text-gray-600 leading-relaxed">
+                        Na hospedagem da Vercel (servidores serverless), arquivos locais são temporários. Quando você conecta o banco <strong>MongoDB Atlas (100% gratuito)</strong>, qualquer ação, foto ou alteração cadastrada fica gravada na nuvem permanentemente e sincronizada para todos os dispositivos.
+                    </p>
+                </div>
+
+                <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                    <h4 class="font-bold text-gray-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="ph-bold ph-lightning text-amber-500"></i> Como ativar o MongoDB Atlas:
+                    </h4>
+                    <ol class="list-decimal list-inside text-xs text-gray-600 space-y-1.5 pl-1">
+                        <li>Crie uma conta gratuita em <a href="https://www.mongodb.com/cloud/atlas/register" target="_blank" class="text-blue-600 underline font-semibold">mongodb.com/atlas</a>.</li>
+                        <li>Crie um cluster gratuito (M0 Free Tier) e obtenha a URL de conexão (<code class="bg-gray-200 px-1 py-0.5 rounded text-gray-800 font-mono text-[11px]">mongodb+srv://...</code>).</li>
+                        <li>No painel da <strong>Vercel</strong>, vá em: <em>Settings &gt; Environment Variables</em>.</li>
+                        <li>Adicione a variável com nome <code class="bg-gray-200 px-1 py-0.5 rounded text-gray-800 font-mono text-[11px]">MONGODB_URI</code> e cole o seu link.</li>
+                    </ol>
+                    <p class="text-[11px] text-emerald-700 font-semibold pt-1">
+                        Assim que configurado, o aviso muda para o selo verde: <strong>"MongoDB Atlas Conectado"</strong>!
+                    </p>
+                </div>
+
+                <button type="button" onclick="closeModal()" class="w-full bg-brand-dark hover:bg-black text-white font-bold py-3 rounded-xl text-xs transition-colors">
+                    Entendi
+                </button>
+            </div>
         </div>
 
     </div>
@@ -721,19 +809,28 @@
 
     <!-- JAVASCRIPT -->
     <script>
-        // Sidebar Toggle for Mobile
-        function toggleSidebar() {
+        // Funções de Controle do Menu Lateral (Sidebar Mobile)
+        function openSidebar() {
             const sidebar = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebar-backdrop');
-            
+            if (sidebar) sidebar.classList.remove('-translate-x-full');
+            if (backdrop) backdrop.classList.remove('hidden');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            if (sidebar) sidebar.classList.add('-translate-x-full');
+            if (backdrop) backdrop.classList.add('hidden');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar) return;
             if (sidebar.classList.contains('-translate-x-full')) {
-                // Open
-                sidebar.classList.remove('-translate-x-full');
-                backdrop.classList.remove('hidden');
+                openSidebar();
             } else {
-                // Close
-                sidebar.classList.add('-translate-x-full');
-                backdrop.classList.add('hidden');
+                closeSidebar();
             }
         }
 
@@ -745,21 +842,36 @@
             });
             
             // Show selected view
-            document.getElementById('view-' + viewId).classList.remove('hidden');
+            const targetView = document.getElementById('view-' + viewId);
+            if (targetView) targetView.classList.remove('hidden');
 
-            // Update button styles (reset all)
+            // Reset all sidebar buttons
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.className = "nav-btn w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl font-medium transition-all";
             });
             
-            // Set active style to clicked button
-            if(btnElement) {
+            // Highlight active sidebar button
+            const activeSidebarBtn = document.querySelector(`.nav-btn[data-view="${viewId}"]`);
+            if (activeSidebarBtn) {
+                activeSidebarBtn.className = "nav-btn w-full flex items-center gap-3 px-4 py-3 bg-brand-dark text-white rounded-xl font-medium transition-all shadow-md";
+            } else if (btnElement && btnElement.classList && btnElement.classList.contains('nav-btn')) {
                 btnElement.className = "nav-btn w-full flex items-center gap-3 px-4 py-3 bg-brand-dark text-white rounded-xl font-medium transition-all shadow-md";
             }
 
-            // Close sidebar on mobile after clicking
-            if(window.innerWidth < 768) {
-                toggleSidebar();
+            // Highlight active mobile bottom navigation button
+            document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+                btn.classList.remove('text-amber-500', 'font-bold');
+                btn.classList.add('text-gray-500');
+            });
+            const activeMobileBtn = document.getElementById('mobile-nav-' + viewId);
+            if (activeMobileBtn) {
+                activeMobileBtn.classList.remove('text-gray-500');
+                activeMobileBtn.classList.add('text-amber-500', 'font-bold');
+            }
+
+            // Always close sidebar on mobile if it was open
+            if (window.innerWidth < 768) {
+                closeSidebar();
             }
         }
 
@@ -931,6 +1043,6 @@
         }
     </script>
     <!-- JAVASCRIPT ADMIN CONECTADO À API -->
-    <script src="js/admin.js?v=20261001_06"></script>
+    <script src="js/admin.js?v=20261001_07"></script>
 </body>
 </html>

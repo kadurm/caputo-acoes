@@ -330,6 +330,38 @@ function saveVideoLocally(file, res) {
 
 // --- ADMIN CRUD ENDPOINTS ---
 
+// POST /api/sync - Sincronização inteligente entre cliente e servidor
+app.post('/api/sync', authenticateToken, async (req, res) => {
+  try {
+    const incomingData = req.body;
+    if (!incomingData) {
+      return res.status(400).json({ success: false, message: 'Dados inválidos.' });
+    }
+
+    const db = await getAppData();
+    const serverTime = db.updatedAt ? new Date(db.updatedAt).getTime() : 0;
+    const clientTime = incomingData.updatedAt ? new Date(incomingData.updatedAt).getTime() : Date.now();
+
+    if (clientTime >= serverTime || !db.updatedAt) {
+      const mergedDb = {
+        ...db,
+        ...incomingData,
+        destaque: incomingData.destaque || db.destaque,
+        acoes: incomingData.acoes || db.acoes,
+        config: { ...(db.config || {}), ...(incomingData.config || {}) },
+        updatedAt: new Date().toISOString()
+      };
+      await saveAppData(mergedDb);
+      return res.json({ success: true, message: 'Dados sincronizados com sucesso!', fullDb: mergedDb });
+    }
+
+    res.json({ success: true, message: 'Servidor já possui dados atualizados.', fullDb: db });
+  } catch (err) {
+    console.error('Erro na sincronização:', err);
+    res.status(500).json({ success: false, message: 'Falha ao sincronizar dados.' });
+  }
+});
+
 // CRUD: Ações
 app.get('/api/acoes', authenticateToken, async (req, res) => {
   try {
@@ -346,11 +378,15 @@ app.post('/api/acoes', authenticateToken, async (req, res) => {
     db.acoes = db.acoes || [];
     db.encerradas = db.encerradas || [];
 
+    const defaultImg = req.body.localExibicao === 'Destaque Principal (Banner Topo)' 
+      ? 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&auto=format&fit=crop&q=80'
+      : 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&auto=format&fit=crop&q=80';
+
     const novaAcao = {
       id: 'acao_' + Date.now(),
       titulo: req.body.titulo,
       precoCota: req.body.precoCota,
-      imagemUrl: req.body.imagemUrl || 'https://placehold.co/400x500/111827/ca8a04?text=FOTO+AÇÃO',
+      imagemUrl: (req.body.imagemUrl && req.body.imagemUrl.trim()) ? req.body.imagemUrl.trim() : defaultImg,
       porcentagemVendido: Number(req.body.porcentagemVendido) || 0,
       localExibicao: req.body.localExibicao || 'Aba: Ativas',
       acaoVinculada: req.body.acaoVinculada ? String(req.body.acaoVinculada).trim() : '',

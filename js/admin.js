@@ -196,10 +196,48 @@ async function loadAdminData() {
       if (json.storageStatus) {
         renderStorageStatus(json.storageStatus);
       }
+
+      let finalData = json.data;
+      const cachedRaw = localStorage.getItem('caputo_app_data');
+      if (cachedRaw) {
+        try {
+          const cached = JSON.parse(cachedRaw);
+          const cachedTime = cached.updatedAt ? new Date(cached.updatedAt).getTime() : 0;
+          const serverTime = finalData.updatedAt ? new Date(finalData.updatedAt).getTime() : 0;
+
+          const serverHasDefaultDestaque = (!finalData.destaque || !finalData.destaque.titulo || finalData.destaque.titulo === 'Ação Principal');
+          const cacheHasCustomDestaque = (cached.destaque && cached.destaque.titulo && cached.destaque.titulo !== 'Ação Principal');
+
+          if (cachedTime > serverTime || (serverHasDefaultDestaque && cacheHasCustomDestaque)) {
+            console.log('🔄 Mantendo dados locais mais recentes e sincronizando com o servidor...');
+            finalData = {
+              ...finalData,
+              ...cached,
+              destaque: cached.destaque || finalData.destaque,
+              acoes: (cached.acoes && cached.acoes.length > 0) ? cached.acoes : finalData.acoes,
+              config: { ...(finalData.config || {}), ...(cached.config || {}) },
+              updatedAt: cached.updatedAt || new Date().toISOString()
+            };
+            if (authToken) {
+              fetch('/api/sync', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify(finalData)
+              }).catch(err => console.warn('Erro ao sincronizar com servidor:', err));
+            }
+          }
+        } catch (e) {
+          console.warn('Erro ao analisar cache local:', e);
+        }
+      }
+
       try {
-        localStorage.setItem('caputo_app_data', JSON.stringify(json.data));
+        localStorage.setItem('caputo_app_data', JSON.stringify(finalData));
       } catch (storageErr) {}
-      renderAdminDashboard(json.data);
+      renderAdminDashboard(finalData);
     }
     // Sincronizar dados financeiros via API autenticada
     if (authToken) {
@@ -466,56 +504,115 @@ function renderAdminDashboard(db) {
   }
 }
 
-// Upload Image Handler via API (/api/upload) com compressão inteligente
+// Upload Image Handler via Cloudinary Direto ou API com compressão inteligente
 async function handleFileUpload(fileInput, formKey) {
   if (!fileInput.files || fileInput.files.length === 0) return;
   const rawFile = fileInput.files[0];
 
   showToast('Processando e otimizando imagem...', 'info');
 
-  // Compressão no cliente (< 250KB) para garantir velocidade máxima e evitar limite 413 da Vercel
-  const { file, dataUrl } = await compressImageClientSide(rawFile, 1200, 1200, 0.85);
-
-  if (dataUrl) {
-    uploadedImageUrls[formKey] = dataUrl;
-    if (formKey === 'modal-acao') {
-      const imgPreview = document.getElementById('acao-img-preview');
-      const previewContainer = document.getElementById('acao-preview-container');
-      const fileText = document.getElementById('acao-file-text');
-      if (imgPreview) {
-        imgPreview.src = dataUrl;
-        imgPreview.onerror = function() {
-          this.onerror = null;
-          this.src = DEFAULT_CARD_IMG;
-        };
-      }
-      if (previewContainer) previewContainer.classList.remove('hidden');
-      if (fileText) fileText.textContent = `Arquivo: ${file.name} (otimizado)`;
-    }
+  const submitBtn = formKey === 'modal-acao' 
+    ? document.getElementById('modal-acao-submit') 
+    : (formKey === 'modal-ganhador' ? document.getElementById('modal-ganhador-submit') : document.getElementById('modal-video-submit'));
+  const originalBtnHtml = submitBtn ? submitBtn.innerHTML : 'Salvar';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-1"></i> Enviando foto para a nuvem...';
   }
-
-  const formData = new FormData();
-  formData.append('file', file);
+  window.isUploadingImage = true;
 
   try {
-    const res = await fetch('/api/upload', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${authToken}` },
-      body: formData
-    });
+    // Compressão no cliente (< 250KB) para garantir velocidade máxima
+    const { file, dataUrl } = await compressImageClientSide(rawFile, 1200, 1200, 0.85);
 
-    const json = await res.json();
-    if (json.success && json.url) {
-      uploadedImageUrls[formKey] = json.url;
-      const urlInput = document.getElementById('acao-imagem-url');
-      if (urlInput && formKey === 'modal-acao') urlInput.value = json.url;
-      showToast('Imagem carregada com sucesso!', 'success');
-    } else {
-      showToast('Imagem otimizada e pronta para salvar.', 'info');
+    if (dataUrl) {
+      uploadedImageUrls[formKey] = dataUrl;
+      if (formKey === 'modal-acao') {
+        const imgPreview = document.getElementById('acao-img-preview');
+        const previewContainer = document.getElementById('acao-preview-container');
+        const fileText = document.getElementById('acao-file-text');
+        if (imgPreview) {
+          imgPreview.src = dataUrl;
+          imgPreview.onerror = function() {
+            this.onerror = null;
+            this.src = DEFAULT_CARD_IMG;
+          };
+        }
+        if (previewContainer) previewContainer.classList.remove('hidden');
+        if (fileText) fileText.textContent = `Arquivo: ${file.name} (enviando para a nuvem...)`;
+      }
     }
+
+    let finalUrl = null;
+
+    // 1. Tentar upload direto no Cloudinary (Gera URL permanente na nuvem: https://res.cloudinary.com/...)
+    try {
+      const cloudName = (window.adminDataCache && window.adminDataCache.config && window.adminDataCache.config.cloudinaryCloudName) || 'dxeju6d3e';
+      const uploadPreset = (window.adminDataCache && window.adminDataCache.config && window.adminDataCache.config.cloudinaryUploadPreset) || 'caputo_videos';
+
+      const cloudFormData = new FormData();
+      cloudFormData.append('file', file);
+      cloudFormData.append('upload_preset', uploadPreset);
+
+      const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: 'POST',
+        body: cloudFormData
+      });
+
+      if (cloudRes.ok) {
+        const cloudJson = await cloudRes.json();
+        if (cloudJson && cloudJson.secure_url) {
+          finalUrl = cloudJson.secure_url;
+        }
+      }
+    } catch (cloudErr) {
+      console.warn('Upload direto no Cloudinary falhou, tentando backend:', cloudErr);
+    }
+
+    // 2. Se Cloudinary direto não respondeu, enviar para o backend (/api/upload)
+    if (!finalUrl) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${authToken}` },
+          body: formData
+        });
+
+        const json = await res.json();
+        if (json.success && json.url) {
+          finalUrl = json.url;
+        }
+      } catch (apiErr) {
+        console.warn('Upload via backend indisponível, usando versão compactada:', apiErr);
+      }
+    }
+
+    // 3. Fallback: DataURL compactado
+    if (!finalUrl) {
+      finalUrl = dataUrl;
+    }
+
+    uploadedImageUrls[formKey] = finalUrl;
+    if (formKey === 'modal-acao') {
+      const urlInput = document.getElementById('acao-imagem-url');
+      if (urlInput) urlInput.value = finalUrl;
+      const fileText = document.getElementById('acao-file-text');
+      if (fileText) fileText.textContent = `Foto carregada com sucesso!`;
+      const imgPreview = document.getElementById('acao-img-preview');
+      if (imgPreview && finalUrl) imgPreview.src = finalUrl;
+    }
+    showToast('Imagem salva e otimizada com sucesso!', 'success');
   } catch (err) {
-    console.warn('Upload de imagem via API com erro, usando versão otimizada local:', err);
-    showToast('Imagem otimizada e pronta para salvar.', 'info');
+    console.error('Erro no upload de imagem:', err);
+    showToast('Falha ao processar imagem.', 'error');
+  } finally {
+    window.isUploadingImage = false;
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnHtml;
+    }
   }
 }
 
@@ -795,7 +892,8 @@ function openEditAcao(id) {
   const imgPreview = document.getElementById('acao-img-preview');
   const urlInput = document.getElementById('acao-imagem-url');
 
-  delete uploadedImageUrls['modal-acao'];
+  // Preserva a imagem existente caso o usuário não selecione outra
+  uploadedImageUrls['modal-acao'] = acao.imagemUrl || '';
 
   if (acao.imagemUrl) {
     if (imgPreview) {
@@ -887,6 +985,11 @@ function openEditVideo(id) {
 // API CRUD Call: Create / Edit Ação
 async function submitNovaAcao(event) {
   event.preventDefault();
+  if (window.isUploadingImage) {
+    showToast('Aguarde o envio da imagem ser concluído...', 'warning');
+    return;
+  }
+
   const idInput = document.getElementById('acao-id');
   const id = idInput ? idInput.value.trim() : '';
   const isEditing = !!id;
@@ -897,7 +1000,10 @@ async function submitNovaAcao(event) {
   const localEl = document.getElementById('acao-local') || event.target.querySelector('select');
   const isDestaque = localEl && localEl.value && localEl.value.includes('Destaque');
   const defaultFallback = isDestaque ? DEFAULT_DESTAQUE_IMG : DEFAULT_CARD_IMG;
-  const rawImagemUrl = uploadedImageUrls['modal-acao'] || manualUrl || existingItem.imagemUrl || defaultFallback;
+  const rawImagemUrl = (uploadedImageUrls['modal-acao'] && uploadedImageUrls['modal-acao'].trim()) 
+    || manualUrl 
+    || (existingItem.imagemUrl && existingItem.imagemUrl.trim()) 
+    || defaultFallback;
   const imagemUrl = (rawImagemUrl && rawImagemUrl.trim()) ? rawImagemUrl.trim() : defaultFallback;
 
   const tituloEl = document.getElementById('acao-titulo') || event.target.querySelector('input[placeholder*="Título"]') || event.target.querySelector('input[type="text"]');
@@ -913,7 +1019,8 @@ async function submitNovaAcao(event) {
     acaoVinculada: vinculadaEl ? vinculadaEl.value.trim() : '',
     porcentagemVendido: porcentagemEl ? (Number(porcentagemEl.value) || 0) : (existingItem.porcentagemVendido || 0),
     linkCheckout: checkoutEl ? checkoutEl.value.trim() : '',
-    imagemUrl: imagemUrl
+    imagemUrl: imagemUrl,
+    updatedAt: new Date().toISOString()
   };
 
   const submitBtn = document.getElementById('modal-acao-submit') || event.target.querySelector('button[type="submit"]');
@@ -954,6 +1061,7 @@ async function submitNovaAcao(event) {
       if (typeof toggleAcaoVinculadaField === 'function') toggleAcaoVinculadaField('');
       currentEditState.acao = null;
       if (json.fullDb) {
+        json.fullDb.updatedAt = new Date().toISOString();
         window.adminDataCache = json.fullDb;
         try {
           localStorage.setItem('caputo_app_data', JSON.stringify(json.fullDb));

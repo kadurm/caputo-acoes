@@ -39,28 +39,41 @@ async function fetchPublicData() {
     if (!res.ok) throw new Error('Falha ao carregar dados da API');
     const json = await res.json();
     if (json.success && json.data) {
-      // Proteger edições customizadas contra fallbacks padrão
+      let finalData = json.data;
+      // Proteger edições customizadas contra fallbacks padrão ou servidor stale
       const cachedRaw = localStorage.getItem('caputo_app_data');
       if (cachedRaw) {
         try {
           const cached = JSON.parse(cachedRaw);
-          if (cached && cached.config && cached.config.whatsappUrl && !cached.config.whatsappUrl.includes('5500000000000')) {
-            if (!json.data.config || !json.data.config.whatsappUrl || json.data.config.whatsappUrl.includes('5500000000000')) {
-              json.data.config = json.data.config || {};
-              json.data.config.whatsappUrl = cached.config.whatsappUrl;
-            }
-          }
-          if (cached && cached.destaque && cached.destaque.titulo && cached.destaque.titulo !== 'Ação Principal') {
-            if (!json.data.destaque || !json.data.destaque.titulo || json.data.destaque.titulo === 'Ação Principal') {
-              json.data.destaque = cached.destaque;
+          const cachedTime = cached.updatedAt ? new Date(cached.updatedAt).getTime() : 0;
+          const serverTime = finalData.updatedAt ? new Date(finalData.updatedAt).getTime() : 0;
+
+          const serverHasDefaultDestaque = (!finalData.destaque || !finalData.destaque.titulo || finalData.destaque.titulo === 'Ação Principal');
+          const cacheHasCustomDestaque = (cached.destaque && cached.destaque.titulo && cached.destaque.titulo !== 'Ação Principal');
+
+          if (cachedTime > serverTime || (serverHasDefaultDestaque && cacheHasCustomDestaque)) {
+            finalData = {
+              ...finalData,
+              ...cached,
+              destaque: cached.destaque || finalData.destaque,
+              acoes: (cached.acoes && cached.acoes.length > 0) ? cached.acoes : finalData.acoes,
+              config: { ...(finalData.config || {}), ...(cached.config || {}) },
+              updatedAt: cached.updatedAt || new Date().toISOString()
+            };
+          } else {
+            if (cached && cached.config && cached.config.whatsappUrl && !cached.config.whatsappUrl.includes('5500000000000')) {
+              if (!finalData.config || !finalData.config.whatsappUrl || finalData.config.whatsappUrl.includes('5500000000000')) {
+                finalData.config = finalData.config || {};
+                finalData.config.whatsappUrl = cached.config.whatsappUrl;
+              }
             }
           }
         } catch (e) {}
       }
       try {
-        localStorage.setItem('caputo_app_data', JSON.stringify(json.data));
+        localStorage.setItem('caputo_app_data', JSON.stringify(finalData));
       } catch (storageErr) {}
-      renderPageData(json.data);
+      renderPageData(finalData);
     }
   } catch (err) {
     console.warn('Usando dados estáticos de fallback/cache:', err);

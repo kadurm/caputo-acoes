@@ -17,7 +17,7 @@ const TMP_FILE_PATH = path.join(process.env.TMPDIR || '/tmp', 'caputo_db.json');
 const DEFAULT_DATA = {
   destaque: {
     id: 'destaque_1',
-    titulo: 'Ação Principal',
+    titulo: 'Nova Hilux',
     subtitulo: 'Apenas R$ 0,50 a cota.',
     precoCota: '0,50',
     imagemUrl: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&auto=format&fit=crop&q=80',
@@ -43,7 +43,8 @@ const DEFAULT_DATA = {
   },
   financeiro: {
     transacoes: []
-  }
+  },
+  updatedAt: new Date().toISOString()
 };
 
 // Cache de conexão para ambiente Serverless (Vercel)
@@ -204,13 +205,14 @@ async function getAppData() {
  */
 async function saveAppData(data) {
   let savedInMongo = false;
+  data.updatedAt = new Date().toISOString();
 
   if (process.env.MONGODB_URI) {
     const db = await getMongoDb();
     if (db) {
       try {
         const collection = db.collection('app_data');
-        const updatePayload = { ...data, updatedAt: new Date().toISOString() };
+        const updatePayload = { ...data };
         delete updatePayload._id;
 
         await collection.updateOne(

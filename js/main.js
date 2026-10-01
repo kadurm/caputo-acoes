@@ -221,21 +221,7 @@ function renderPageData(db) {
     }).join('');
   }
 
-  // 5. Render Encerradas
-  const tabEncerradasContainer = document.querySelector('#tab-passadas .grid');
-  if (tabEncerradasContainer && db.encerradas && db.encerradas.length > 0) {
-    tabEncerradasContainer.innerHTML = db.encerradas.map(e => `
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden opacity-75">
-          <img src="${e.imagemUrl}" alt="${e.titulo}" class="w-full aspect-square object-cover grayscale">
-          <div class="p-2 text-center bg-gray-100">
-              <span class="bg-gray-800 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Finalizada</span>
-              <h4 class="font-semibold text-xs text-gray-800 mt-1 truncate">${e.titulo}</h4>
-          </div>
-      </div>
-    `).join('');
-  }
-
-  // 6. Update Contact Links (WhatsApp e Instagram)
+  // 5. Update Contact Links (WhatsApp e Instagram)
   if (db.config) {
     const whatsappBtn = document.getElementById('btn-contato-whatsapp') || document.querySelector('a[href*="wa.me"]');
     if (whatsappBtn && db.config.whatsappUrl) {

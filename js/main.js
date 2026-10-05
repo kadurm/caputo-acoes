@@ -108,7 +108,7 @@ const DEFAULT_CARD_IMG = 'https://images.unsplash.com/photo-1552519507-da3b142c6
                 <span class="bg-red-600 text-white text-xs font-bold uppercase px-3 py-1 rounded-full w-max mb-2 animate-pulse-slow">
                     ${db.destaque.statusBadge || 'Encerrando em breve!'}
                 </span>
-                <h3 class="text-white font-bold text-2xl leading-tight mb-1 shadow-black drop-shadow-md">${db.destaque.titulo}</h3>
+                <h2 class="text-white font-bold text-2xl leading-tight mb-1 shadow-black drop-shadow-md">${db.destaque.titulo}</h2>
                 <p class="text-gray-300 text-sm mb-4">${subtituloLimpo || `Apenas R$ ${db.destaque.precoCota} a cota.`}</p>
                 
                 <a id="btn-comprar-destaque" href="${linkComprar}" target="_blank" class="w-full bg-brand-action hover:bg-green-500 text-white font-bold text-lg py-4 rounded-xl shadow-[0_4px_0_0_#14532d] active:shadow-[0_0px_0_0_#14532d] active:translate-y-1 transition-all flex items-center justify-center gap-2">
@@ -146,7 +146,7 @@ const DEFAULT_CARD_IMG = 'https://images.unsplash.com/photo-1552519507-da3b142c6
                 </div>
                 <div class="flex flex-col justify-center flex-1">
                     <span class="text-[10px] font-bold text-green-700 uppercase tracking-wider mb-1">Cotas Disponíveis</span>
-                    <h4 class="font-bold text-gray-900 leading-tight mb-1">${acao.titulo}</h4>
+                    <h3 class="font-bold text-gray-900 leading-tight mb-1">${acao.titulo}</h3>
                     <p class="text-xs text-gray-500 mb-2">Por apenas R$ ${acao.precoCota}</p>
                 </div>
             </div>
@@ -192,7 +192,7 @@ const DEFAULT_CARD_IMG = 'https://images.unsplash.com/photo-1552519507-da3b142c6
                             <i class="ph-fill ph-lightning"></i> Relâmpago
                         </span>
                     </div>
-                    <h4 class="font-bold text-gray-900 leading-tight mb-0.5">${acao.titulo}</h4>
+                    <h3 class="font-bold text-gray-900 leading-tight mb-0.5">${acao.titulo}</h3>
                     <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded-md mt-1 mb-2 border border-amber-200/50 w-max">
                         <i class="ph-fill ph-lightning text-xs text-amber-600"></i> Poucos Números • Sorteio Rápido
                     </span>
@@ -365,7 +365,7 @@ const DEFAULT_CARD_IMG = 'https://images.unsplash.com/photo-1552519507-da3b142c6
                           <span class="bg-emerald-100 text-emerald-800 text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border border-emerald-200 inline-flex items-center gap-1">
                               <i class="ph-fill ph-ticket"></i> ${escapeHtml(campanha.tipo || 'Ação Ativa')}
                           </span>
-                          <h4 class="font-bold text-gray-900 text-sm sm:text-base leading-snug mt-0.5">${escapeHtml(campanha.titulo)}</h4>
+                          <h3 class="font-bold text-gray-900 text-sm sm:text-base leading-snug mt-0.5">${escapeHtml(campanha.titulo)}</h3>
                           ${campanha.precoCota ? `<p class="text-xs text-gray-500">Cota: apenas R$ ${campanha.precoCota}</p>` : ''}
                       </div>
                   </div>

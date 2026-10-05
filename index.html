@@ -98,19 +98,31 @@
 
         <!-- TABS NAVIGATION -->
         <section class="bg-white sticky top-0 z-40 shadow-sm border-b border-gray-200">
-            <!-- Scrollable container for tabs on small screens -->
-            <div class="flex overflow-x-auto no-scrollbar gap-2 p-3 items-center" id="tabs-container">
-                <button onclick="switchTab('ativas', this)" class="tab-btn flex-shrink-0 flex items-center gap-2 bg-brand-dark text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all">
-                    <i class="ph ph-target text-lg"></i> Ativas
+            <div class="relative flex items-center">
+                <!-- Botão Scroll Esquerda (Desktop) -->
+                <button id="tab-scroll-left" onclick="scrollTabs('left')" class="absolute left-1 z-20 w-8 h-8 bg-white/95 backdrop-blur shadow-md border border-gray-200 rounded-full flex items-center justify-center text-gray-700 hover:text-brand-dark hover:bg-gray-50 transition-all opacity-0 pointer-events-none active:scale-95" aria-label="Rolar abas para a esquerda">
+                    <i class="ph-bold ph-caret-left text-base"></i>
                 </button>
-                <button onclick="switchTab('relampago', this)" class="tab-btn flex-shrink-0 flex items-center gap-2 bg-gray-100 text-gray-600 px-5 py-2.5 rounded-full text-sm font-semibold transition-all">
-                    <i class="ph-fill ph-lightning text-amber-500 text-lg"></i> Relâmpago
-                </button>
-                <button onclick="switchTab('bilhetes', this)" class="tab-btn flex-shrink-0 flex items-center gap-2 bg-gray-100 text-gray-600 px-5 py-2.5 rounded-full text-sm font-semibold transition-all">
-                    <i class="ph-fill ph-ticket text-emerald-500 text-lg"></i> Bilhetes Premiados
-                </button>
-                <button onclick="switchTab('resultados', this)" class="tab-btn flex-shrink-0 flex items-center gap-2 bg-gray-100 text-gray-600 px-5 py-2.5 rounded-full text-sm font-semibold transition-all">
-                    <i class="ph ph-trophy text-lg"></i> Resultados
+
+                <!-- Scrollable container for tabs with mouse drag & wheel support -->
+                <div class="flex overflow-x-auto no-scrollbar gap-2 p-3 items-center w-full select-none cursor-grab scroll-smooth" id="tabs-container">
+                    <button onclick="switchTab('ativas', this)" class="tab-btn flex-shrink-0 flex items-center gap-2 bg-brand-dark text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all">
+                        <i class="ph ph-target text-base sm:text-lg"></i> Ativas
+                    </button>
+                    <button onclick="switchTab('relampago', this)" class="tab-btn flex-shrink-0 flex items-center gap-2 bg-gray-100 text-gray-600 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all">
+                        <i class="ph-fill ph-lightning text-amber-500 text-base sm:text-lg"></i> Relâmpago
+                    </button>
+                    <button onclick="switchTab('bilhetes', this)" class="tab-btn flex-shrink-0 flex items-center gap-2 bg-gray-100 text-gray-600 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all">
+                        <i class="ph-fill ph-ticket text-emerald-500 text-base sm:text-lg"></i> Bilhetes Premiados
+                    </button>
+                    <button onclick="switchTab('resultados', this)" class="tab-btn flex-shrink-0 flex items-center gap-2 bg-gray-100 text-gray-600 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all">
+                        <i class="ph ph-trophy text-base sm:text-lg"></i> Resultados
+                    </button>
+                </div>
+
+                <!-- Botão Scroll Direita (Desktop) -->
+                <button id="tab-scroll-right" onclick="scrollTabs('right')" class="absolute right-1 z-20 w-8 h-8 bg-white/95 backdrop-blur shadow-md border border-gray-200 rounded-full flex items-center justify-center text-gray-700 hover:text-brand-dark hover:bg-gray-50 transition-all active:scale-95" aria-label="Rolar abas para a direita">
+                    <i class="ph-bold ph-caret-right text-base"></i>
                 </button>
             </div>
         </section>
@@ -265,21 +277,126 @@
             // 2. Remove active styling from all buttons
             const buttons = document.querySelectorAll('.tab-btn');
             buttons.forEach(btn => {
-                btn.className = "tab-btn flex-shrink-0 flex items-center gap-2 bg-gray-100 text-gray-600 px-5 py-2.5 rounded-full text-sm font-semibold transition-all";
+                btn.className = "tab-btn flex-shrink-0 flex items-center gap-2 bg-gray-100 text-gray-600 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all";
             });
 
             // 3. Show the selected tab content
             document.getElementById('tab-' + tabId).classList.remove('hidden');
 
             // 4. Add active styling to the clicked button
-            clickedBtn.className = "tab-btn flex-shrink-0 flex items-center gap-2 bg-brand-dark text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all";
+            clickedBtn.className = "tab-btn flex-shrink-0 flex items-center gap-2 bg-brand-dark text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all";
             
-            // 5. Scroll slightly to ensure content is in view if on mobile, below the tabs bar
+            // 5. Centralizar a aba clicada na visualização horizontal
+            if (clickedBtn && clickedBtn.scrollIntoView) {
+                clickedBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                setTimeout(updateScrollArrows, 300);
+            }
+
+            // 6. Scroll suave para o início do conteúdo se estiver abaixo da barra
             const yOffset = -60; 
             const element = document.getElementById('tab-' + tabId);
-            const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-            window.scrollTo({top: y, behavior: 'smooth'});
+            if (element) {
+                const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                window.scrollTo({top: y, behavior: 'smooth'});
+            }
         }
+
+        // Navegação por setas laterais
+        function scrollTabs(direction) {
+            const container = document.getElementById('tabs-container');
+            if (!container) return;
+            const amount = direction === 'left' ? -200 : 200;
+            container.scrollBy({ left: amount, behavior: 'smooth' });
+            setTimeout(updateScrollArrows, 300);
+        }
+
+        // Atualização visual das setas de scroll (mostra/esconde conforme o alcance)
+        function updateScrollArrows() {
+            const container = document.getElementById('tabs-container');
+            const btnLeft = document.getElementById('tab-scroll-left');
+            const btnRight = document.getElementById('tab-scroll-right');
+            if (!container || !btnLeft || !btnRight) return;
+
+            const maxScroll = container.scrollWidth - container.clientWidth;
+            if (maxScroll <= 4) {
+                btnLeft.classList.add('opacity-0', 'pointer-events-none');
+                btnRight.classList.add('opacity-0', 'pointer-events-none');
+                return;
+            }
+
+            if (container.scrollLeft > 8) {
+                btnLeft.classList.remove('opacity-0', 'pointer-events-none');
+            } else {
+                btnLeft.classList.add('opacity-0', 'pointer-events-none');
+            }
+
+            if (container.scrollLeft < maxScroll - 8) {
+                btnRight.classList.remove('opacity-0', 'pointer-events-none');
+            } else {
+                btnRight.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        // Inicialização de suporte a mouse drag (clicar e arrastar no desktop) e mouse wheel
+        (function initTabsDragAndScroll() {
+            const container = document.getElementById('tabs-container');
+            if (!container) return;
+
+            let isDown = false;
+            let startX = 0;
+            let scrollStart = 0;
+            let hasMoved = false;
+
+            container.addEventListener('mousedown', (e) => {
+                isDown = true;
+                hasMoved = false;
+                startX = e.pageX - container.offsetLeft;
+                scrollStart = container.scrollLeft;
+                container.classList.add('cursor-grabbing');
+                container.classList.remove('cursor-grab');
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (!isDown) return;
+                isDown = false;
+                container.classList.remove('cursor-grabbing');
+                container.classList.add('cursor-grab');
+                setTimeout(() => { hasMoved = false; }, 60);
+            });
+
+            container.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - container.offsetLeft;
+                const walk = (x - startX) * 1.5;
+                if (Math.abs(walk) > 4) {
+                    hasMoved = true;
+                }
+                container.scrollLeft = scrollStart - walk;
+                updateScrollArrows();
+            });
+
+            // Evitar que o clique no botão ative se o usuário estava arrastando com o mouse
+            container.addEventListener('click', (e) => {
+                if (hasMoved) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }, true);
+
+            // Suporte para scroll da rodinha do mouse (wheel)
+            container.addEventListener('wheel', (e) => {
+                if (e.deltaY !== 0) {
+                    e.preventDefault();
+                    container.scrollLeft += e.deltaY;
+                    updateScrollArrows();
+                }
+            }, { passive: false });
+
+            container.addEventListener('scroll', updateScrollArrows);
+            window.addEventListener('resize', updateScrollArrows);
+            setTimeout(updateScrollArrows, 150);
+        })();
     </script>
     <!-- PRÉ-CARREGAMENTO INSTANTÂNEO VIA CACHE LOCAL (0ms) -->
     <script>

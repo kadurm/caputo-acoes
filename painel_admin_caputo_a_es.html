@@ -8,6 +8,10 @@
     <meta http-equiv="Expires" content="0">
     <title>Admin | Caputo Ações</title>
     
+    <!-- Favicon e Ícones de Dispositivos -->
+    <link rel="icon" type="image/png" href="images/logo_caputo_dark.png">
+    <link rel="apple-touch-icon" href="images/logo_caputo_dark.png">
+    
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -107,7 +111,7 @@
     <div id="login-screen" class="fixed inset-0 bg-gray-900/90 backdrop-blur-md z-[300] flex items-center justify-center p-4 py-8 pt-[max(2rem,env(safe-area-inset-top))] pb-[max(2rem,calc(env(safe-area-inset-bottom)+1rem))] overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full border border-gray-100">
             <div class="flex flex-col items-center justify-center select-none mb-6">
-                <img src="images/logo_caputo_dark.png" alt="Caputo Ações" class="h-16 w-auto object-contain select-none mb-3">
+                <img src="images/logo_caputo_dark.png" alt="Caputo Ações" class="h-16 w-auto object-contain select-none mb-3" onerror="this.onerror=null; this.src='/images/logo_caputo_dark.png';">
                 <div class="flex items-center gap-3 w-full justify-center opacity-80">
                     <div class="h-[1px] w-12 bg-black"></div>
                     <h2 class="font-sans text-xs font-bold tracking-[0.3em] text-black uppercase">ADMIN LOGIN</h2>
@@ -144,7 +148,7 @@
         <!-- Logo Area -->
         <div class="p-5 flex items-center justify-center border-b border-gray-100 relative">
             <div class="flex flex-col items-center justify-center select-none">
-                <img src="images/logo_caputo_dark.png" alt="Caputo Ações" class="h-12 w-auto object-contain select-none mb-1.5">
+                <img src="images/logo_caputo_dark.png" alt="Caputo Ações" class="h-12 w-auto object-contain select-none mb-1.5" onerror="this.onerror=null; this.src='/images/logo_caputo_dark.png';">
                 <div class="flex items-center gap-2 w-full justify-center opacity-80">
                     <div class="h-[1px] w-8 bg-black"></div>
                     <h2 class="font-sans text-[10px] font-bold tracking-[0.3em] text-black uppercase">ADMIN</h2>
@@ -196,24 +200,27 @@
     <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col h-full overflow-hidden bg-gray-100">
         
-        <!-- Mobile Header -->
-        <header class="bg-white shadow-sm px-4 py-2.5 mobile-header-safe flex items-center justify-between md:hidden z-30 border-b border-gray-200">
-            <!-- Botão Menu Lateral -->
-            <button type="button" onclick="openSidebar()" class="flex items-center gap-2 px-3 py-1.5 bg-brand-dark hover:bg-black text-white text-xs font-bold rounded-xl shadow-sm transition-transform active:scale-95" aria-label="Abrir menu lateral">
-                <i class="ph-bold ph-list text-lg text-amber-400"></i>
-                <span>Menu</span>
-            </button>
+        <!-- Header (Mobile & Desktop) -->
+        <header class="bg-white shadow-sm px-4 md:px-8 py-2.5 mobile-header-safe flex items-center justify-between z-30 border-b border-gray-200">
+            <!-- Botão Menu Lateral (Mobile) & Logo -->
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="openSidebar()" class="flex items-center gap-2 px-3 py-1.5 bg-brand-dark hover:bg-black text-white text-xs font-bold rounded-xl shadow-sm transition-transform active:scale-95 md:hidden" aria-label="Abrir menu lateral">
+                    <i class="ph-bold ph-list text-lg text-amber-400"></i>
+                    <span>Menu</span>
+                </button>
 
-            <!-- Brand Logo -->
-            <div class="flex items-center gap-1.5 select-none">
-                <img src="images/logo_caputo_dark.png" alt="Caputo Ações" class="h-6 w-auto object-contain">
-                <span class="text-[9px] font-extrabold uppercase tracking-widest bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded border border-gray-200">ADMIN</span>
+                <!-- Brand Logo -->
+                <div class="flex items-center gap-2 select-none">
+                    <img src="images/logo_caputo_dark.png" alt="Caputo Ações" class="h-6 md:h-7 w-auto object-contain" onerror="this.onerror=null; this.src='/images/logo_caputo_dark.png';">
+                    <span class="text-[9px] md:text-[10px] font-extrabold uppercase tracking-widest bg-gray-100 text-gray-700 px-2 py-0.5 rounded border border-gray-200">ADMIN</span>
+                </div>
             </div>
 
             <!-- Ações Rápidas Header -->
-            <div class="flex items-center gap-1.5">
-                <button type="button" onclick="forceRefreshFromServer()" class="p-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition-colors" title="Sincronizar com o servidor">
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="forceRefreshFromServer()" class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition-colors text-xs font-semibold" title="Sincronizar com o servidor">
                     <i class="ph-bold ph-arrows-clockwise text-sm text-gray-600"></i>
+                    <span class="hidden sm:inline">Sincronizar</span>
                 </button>
                 <a href="/" target="_blank" class="flex items-center gap-1 px-2.5 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg border border-gray-200 transition-colors">
                     <i class="ph-bold ph-arrow-square-out text-sm text-gray-600"></i>

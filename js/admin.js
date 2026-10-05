@@ -487,6 +487,23 @@ function renderAdminDashboard(db) {
     if (instagramInput && db.config.instagramUrl) instagramInput.value = db.config.instagramUrl;
     if (cloudNameInput && db.config.cloudinaryCloudName) cloudNameInput.value = db.config.cloudinaryCloudName;
     if (presetInput && db.config.cloudinaryUploadPreset) presetInput.value = db.config.cloudinaryUploadPreset;
+
+    // Textos informativos dos cards das abas
+    const cardAtivasTituloInput = document.getElementById('config-card-ativas-titulo');
+    const cardAtivasTextoInput = document.getElementById('config-card-ativas-texto');
+    const cardRelampagoTituloInput = document.getElementById('config-card-relampago-titulo');
+    const cardRelampagoTextoInput = document.getElementById('config-card-relampago-texto');
+    const cardBilhetesTituloInput = document.getElementById('config-card-bilhetes-titulo');
+    const cardBilhetesTextoInput = document.getElementById('config-card-bilhetes-texto');
+
+    if (cardAtivasTituloInput) cardAtivasTituloInput.value = db.config.cardAtivasTitulo || 'Todas as nossas ações custam apenas R$ 1,00!';
+    if (cardAtivasTextoInput) cardAtivasTextoInput.value = db.config.cardAtivasTexto || '🍀 Nossos sorteios são realizados ao vivo: se o seu número for o sorteado, o prêmio é todo seu. Lembre-se: quanto mais números você comprar, maiores serão suas chances de ganhar. Confira as promoções disponíveis clicando nos botões das ações e participe!';
+
+    if (cardRelampagoTituloInput) cardRelampagoTituloInput.value = db.config.cardRelampagoTitulo || 'Como funciona a Ação Relâmpago?';
+    if (cardRelampagoTextoInput) cardRelampagoTextoInput.value = db.config.cardRelampagoTexto || 'As Ações Relâmpago são rifas com resultados rápidos. Geralmente em 24 horas! São poucos números disponibilizados pra você ter mais chances.';
+
+    if (cardBilhetesTituloInput) cardBilhetesTituloInput.value = db.config.cardBilhetesTitulo || 'Como funciona o bilhete premiado:';
+    if (cardBilhetesTextoInput) cardBilhetesTextoInput.value = db.config.cardBilhetesTexto || 'O bilhete premiado são números que a gente disponibiliza valendo algo. Por exemplo: disponibilizamos o número 55555 como bilhete premiado, valendo 500 reais. Se no momento que você participar da ação esse número sair pra você, você leva os 500 reais.';
   }
 }
 
@@ -1671,9 +1688,23 @@ async function submitConfiguracoes(event) {
     if (instagramInput) instagramInput.value = formattedInstagram;
   }
 
+  // 3. Textos informativos dos cards das abas
+  const cardAtivasTituloInput = document.getElementById('config-card-ativas-titulo');
+  const cardAtivasTextoInput = document.getElementById('config-card-ativas-texto');
+  const cardRelampagoTituloInput = document.getElementById('config-card-relampago-titulo');
+  const cardRelampagoTextoInput = document.getElementById('config-card-relampago-texto');
+  const cardBilhetesTituloInput = document.getElementById('config-card-bilhetes-titulo');
+  const cardBilhetesTextoInput = document.getElementById('config-card-bilhetes-texto');
+
   const payload = {
     whatsappUrl: formattedWhatsapp,
-    instagramUrl: formattedInstagram
+    instagramUrl: formattedInstagram,
+    cardAtivasTitulo: cardAtivasTituloInput ? cardAtivasTituloInput.value.trim() : '',
+    cardAtivasTexto: cardAtivasTextoInput ? cardAtivasTextoInput.value.trim() : '',
+    cardRelampagoTitulo: cardRelampagoTituloInput ? cardRelampagoTituloInput.value.trim() : '',
+    cardRelampagoTexto: cardRelampagoTextoInput ? cardRelampagoTextoInput.value.trim() : '',
+    cardBilhetesTitulo: cardBilhetesTituloInput ? cardBilhetesTituloInput.value.trim() : '',
+    cardBilhetesTexto: cardBilhetesTextoInput ? cardBilhetesTextoInput.value.trim() : ''
   };
   if (cloudNameInput && cloudNameInput.value) {
     payload.cloudinaryCloudName = cloudNameInput.value.trim();

@@ -943,7 +943,13 @@ app.put('/api/config', authenticateToken, async (req, res) => {
       whatsappUrl: newWhatsapp,
       instagramUrl: newInstagram,
       cloudinaryCloudName: req.body.cloudinaryCloudName !== undefined ? req.body.cloudinaryCloudName.trim() : (db.config && db.config.cloudinaryCloudName) || '',
-      cloudinaryUploadPreset: req.body.cloudinaryUploadPreset !== undefined ? req.body.cloudinaryUploadPreset.trim() : (db.config && db.config.cloudinaryUploadPreset) || ''
+      cloudinaryUploadPreset: req.body.cloudinaryUploadPreset !== undefined ? req.body.cloudinaryUploadPreset.trim() : (db.config && db.config.cloudinaryUploadPreset) || '',
+      cardAtivasTitulo: req.body.cardAtivasTitulo !== undefined ? req.body.cardAtivasTitulo.trim() : (db.config && db.config.cardAtivasTitulo) || '',
+      cardAtivasTexto: req.body.cardAtivasTexto !== undefined ? req.body.cardAtivasTexto.trim() : (db.config && db.config.cardAtivasTexto) || '',
+      cardRelampagoTitulo: req.body.cardRelampagoTitulo !== undefined ? req.body.cardRelampagoTitulo.trim() : (db.config && db.config.cardRelampagoTitulo) || '',
+      cardRelampagoTexto: req.body.cardRelampagoTexto !== undefined ? req.body.cardRelampagoTexto.trim() : (db.config && db.config.cardRelampagoTexto) || '',
+      cardBilhetesTitulo: req.body.cardBilhetesTitulo !== undefined ? req.body.cardBilhetesTitulo.trim() : (db.config && db.config.cardBilhetesTitulo) || '',
+      cardBilhetesTexto: req.body.cardBilhetesTexto !== undefined ? req.body.cardBilhetesTexto.trim() : (db.config && db.config.cardBilhetesTexto) || ''
     };
 
     // Sincronizar WhatsApp em todos os botões de ações (comprar números, participar, garantir números)

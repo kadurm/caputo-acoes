@@ -482,6 +482,34 @@ const DEFAULT_CARD_IMG = 'https://images.unsplash.com/photo-1552519507-da3b142c6
     if (instagramBtn && db.config.instagramUrl) {
       instagramBtn.href = db.config.instagramUrl.trim();
     }
+
+    // 6. Atualizar Textos Informativos dos Cards Explicativos das Abas
+    const cardAtivasTituloEl = document.getElementById('card-ativas-titulo');
+    const cardAtivasTextoEl = document.getElementById('card-ativas-texto');
+    if (cardAtivasTituloEl && db.config.cardAtivasTitulo) {
+      cardAtivasTituloEl.textContent = db.config.cardAtivasTitulo;
+    }
+    if (cardAtivasTextoEl && db.config.cardAtivasTexto) {
+      cardAtivasTextoEl.textContent = db.config.cardAtivasTexto;
+    }
+
+    const cardRelampagoTituloEl = document.getElementById('card-relampago-titulo');
+    const cardRelampagoTextoEl = document.getElementById('card-relampago-texto');
+    if (cardRelampagoTituloEl && db.config.cardRelampagoTitulo) {
+      cardRelampagoTituloEl.textContent = db.config.cardRelampagoTitulo;
+    }
+    if (cardRelampagoTextoEl && db.config.cardRelampagoTexto) {
+      cardRelampagoTextoEl.textContent = db.config.cardRelampagoTexto;
+    }
+
+    const cardBilhetesTituloEl = document.getElementById('card-bilhetes-titulo');
+    const cardBilhetesTextoEl = document.getElementById('card-bilhetes-texto');
+    if (cardBilhetesTituloEl && db.config.cardBilhetesTitulo) {
+      cardBilhetesTituloEl.textContent = db.config.cardBilhetesTitulo;
+    }
+    if (cardBilhetesTextoEl && db.config.cardBilhetesTexto) {
+      cardBilhetesTextoEl.textContent = db.config.cardBilhetesTexto;
+    }
   }
 }
 

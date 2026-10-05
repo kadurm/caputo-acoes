@@ -345,6 +345,7 @@ app.post('/api/sync', authenticateToken, async (req, res) => {
       ...incomingData,
       destaque: incomingData.destaque || db.destaque,
       acoes: (Array.isArray(incomingData.acoes) && incomingData.acoes.length > 0) ? incomingData.acoes : db.acoes,
+      bilhetesPremiados: Array.isArray(incomingData.bilhetesPremiados) ? incomingData.bilhetesPremiados : db.bilhetesPremiados,
       config: { ...(db.config || {}), ...(incomingData.config || {}) },
       updatedAt: new Date().toISOString()
     };
@@ -671,6 +672,113 @@ app.delete('/api/videos/:id', authenticateToken, async (req, res) => {
     res.json({ success: true, message: 'Vídeo removido com sucesso.' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Erro ao remover vídeo.' });
+  }
+});
+
+// --- CRUD: BILHETES PREMIADOS ---
+
+// GET /api/bilhetes - Obter todos os bilhetes premiados
+app.get('/api/bilhetes', async (req, res) => {
+  try {
+    const db = await getAppData();
+    res.json({ success: true, data: db.bilhetesPremiados || [] });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Erro ao buscar bilhetes premiados.' });
+  }
+});
+
+// POST /api/bilhetes - Criar novo bilhete premiado
+app.post('/api/bilhetes', authenticateToken, async (req, res) => {
+  try {
+    const { acaoId, acaoTitulo, numero, premio, status, ganhador } = req.body;
+    if (!numero || !premio) {
+      return res.status(400).json({ success: false, message: 'Número do bilhete e prêmio são obrigatórios.' });
+    }
+
+    const db = await getAppData();
+    db.bilhetesPremiados = db.bilhetesPremiados || [];
+
+    const novoBilhete = {
+      id: 'bilhete_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+      acaoId: acaoId || 'destaque_1',
+      acaoTitulo: acaoTitulo || 'Campanha Principal',
+      numero: String(numero).trim(),
+      premio: String(premio).trim(),
+      status: status || 'disponivel', // 'disponivel' ou 'contemplado'
+      ganhador: ganhador ? String(ganhador).trim() : '',
+      criadoEm: new Date().toISOString()
+    };
+
+    db.bilhetesPremiados.unshift(novoBilhete);
+    await saveAppData(db);
+
+    res.json({
+      success: true,
+      message: 'Bilhete premiado cadastrado com sucesso!',
+      data: novoBilhete,
+      fullDb: db
+    });
+  } catch (err) {
+    console.error('Erro ao salvar bilhete premiado:', err);
+    res.status(500).json({ success: false, message: 'Erro ao salvar bilhete premiado.' });
+  }
+});
+
+// PUT /api/bilhetes/:id - Atualizar bilhete premiado existente
+app.put('/api/bilhetes/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const db = await getAppData();
+    db.bilhetesPremiados = db.bilhetesPremiados || [];
+
+    const index = db.bilhetesPremiados.findIndex(b => b.id === id);
+    if (index === -1) {
+      return res.status(404).json({ success: false, message: 'Bilhete premiado não encontrado.' });
+    }
+
+    const current = db.bilhetesPremiados[index];
+    db.bilhetesPremiados[index] = {
+      ...current,
+      acaoId: req.body.acaoId !== undefined ? req.body.acaoId : current.acaoId,
+      acaoTitulo: req.body.acaoTitulo !== undefined ? req.body.acaoTitulo : current.acaoTitulo,
+      numero: req.body.numero !== undefined ? String(req.body.numero).trim() : current.numero,
+      premio: req.body.premio !== undefined ? String(req.body.premio).trim() : current.premio,
+      status: req.body.status !== undefined ? req.body.status : current.status,
+      ganhador: req.body.ganhador !== undefined ? String(req.body.ganhador).trim() : current.ganhador,
+      atualizadoEm: new Date().toISOString()
+    };
+
+    await saveAppData(db);
+
+    res.json({
+      success: true,
+      message: 'Bilhete premiado atualizado com sucesso!',
+      data: db.bilhetesPremiados[index],
+      fullDb: db
+    });
+  } catch (err) {
+    console.error('Erro ao atualizar bilhete premiado:', err);
+    res.status(500).json({ success: false, message: 'Erro ao atualizar bilhete premiado.' });
+  }
+});
+
+// DELETE /api/bilhetes/:id - Excluir bilhete premiado
+app.delete('/api/bilhetes/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const db = await getAppData();
+    db.bilhetesPremiados = (db.bilhetesPremiados || []).filter(b => b.id !== id);
+
+    await saveAppData(db);
+
+    res.json({
+      success: true,
+      message: 'Bilhete premiado removido com sucesso!',
+      fullDb: db
+    });
+  } catch (err) {
+    console.error('Erro ao excluir bilhete premiado:', err);
+    res.status(500).json({ success: false, message: 'Erro ao excluir bilhete premiado.' });
   }
 });
 

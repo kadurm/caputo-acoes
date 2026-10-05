@@ -31,6 +31,7 @@ const DEFAULT_DATA = {
   encerradas: [],
   ganhadores: [],
   videos: [],
+  bilhetesPremiados: [],
   config: {
     whatsappUrl: 'https://wa.me/5500000000000',
     instagramUrl: 'https://instagram.com/caputoacoes',
@@ -223,6 +224,7 @@ function normalizeAppData(data) {
   data.encerradas = data.encerradas || [];
   data.ganhadores = data.ganhadores || [];
   data.videos = data.videos || [];
+  data.bilhetesPremiados = data.bilhetesPremiados || [];
   data.financeiro = data.financeiro || { transacoes: [] };
   data.financeiro.transacoes = data.financeiro.transacoes || [];
   if (data.destaque && data.destaque.subtitulo) {

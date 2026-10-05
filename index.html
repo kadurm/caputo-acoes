@@ -106,6 +106,9 @@
                 <button onclick="switchTab('relampago', this)" class="tab-btn flex-shrink-0 flex items-center gap-2 bg-gray-100 text-gray-600 px-5 py-2.5 rounded-full text-sm font-semibold transition-all">
                     <i class="ph-fill ph-lightning text-amber-500 text-lg"></i> Relâmpago
                 </button>
+                <button onclick="switchTab('bilhetes', this)" class="tab-btn flex-shrink-0 flex items-center gap-2 bg-gray-100 text-gray-600 px-5 py-2.5 rounded-full text-sm font-semibold transition-all">
+                    <i class="ph-fill ph-ticket text-emerald-500 text-lg"></i> BILHETES PREMIADOS
+                </button>
                 <button onclick="switchTab('resultados', this)" class="tab-btn flex-shrink-0 flex items-center gap-2 bg-gray-100 text-gray-600 px-5 py-2.5 rounded-full text-sm font-semibold transition-all">
                     <i class="ph ph-trophy text-lg"></i> Resultados
                 </button>
@@ -165,7 +168,37 @@
                 </div>
             </div>
 
-            <!-- TAB 3: RESULTADOS (Vídeos) -->
+            <!-- TAB 3: BILHETES PREMIADOS -->
+            <div id="tab-bilhetes" class="tab-content hidden tab-enter">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-1.5 h-6 bg-emerald-500 rounded-full"></div>
+                    <h3 class="font-bold text-lg text-brand-dark flex items-center gap-2">
+                        Bilhetes Premiados <span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border border-emerald-200">Prêmios Instantâneos</span>
+                    </h3>
+                </div>
+
+                <!-- Card Explicativo: Como Funciona -->
+                <div class="bg-gradient-to-br from-emerald-500/10 via-emerald-50/50 to-white rounded-2xl p-4 sm:p-5 border border-emerald-200/80 shadow-sm mb-5">
+                    <div class="flex items-start gap-3.5">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center flex-shrink-0 shadow-md shadow-emerald-500/20">
+                            <i class="ph-fill ph-ticket text-2xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-900 text-base">Como funciona o bilhete premiado:</h4>
+                            <p class="text-xs text-gray-600 mt-1.5 leading-relaxed">
+                                O bilhete premiado são números que a gente disponibiliza valendo algo. Por exemplo: disponibilizamos o número 55555 como bilhete premiado, valendo 500 reais. Se no momento que você participar da ação esse número sair pra você, você leva os 500 reais.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Bilhetes Premiados Categorizados por Ação Ativa -->
+                <div id="lista-bilhetes-premiados" class="space-y-5">
+                    <!-- Preenchido dinamicamente via JavaScript -->
+                </div>
+            </div>
+
+            <!-- TAB 4: RESULTADOS (Vídeos) -->
             <div id="tab-resultados" class="tab-content hidden tab-enter">
                 <div class="flex items-center gap-2 mb-4">
                     <div class="w-1.5 h-6 bg-red-600 rounded-full"></div>
@@ -281,6 +314,6 @@
         })();
     </script>
     <!-- JAVASCRIPT DINÂMICO DA API -->
-    <script src="/js/main.js?v=20261001_10"></script>
+    <script src="/js/main.js?v=20261005_bilhetes"></script>
 </body>
 </html>

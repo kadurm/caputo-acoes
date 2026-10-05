@@ -220,9 +220,161 @@ const DEFAULT_CARD_IMG = 'https://images.unsplash.com/photo-1552519507-da3b142c6
     }
   }
 
+  // 4. Render Bilhetes Premiados (Categorizados/separados por cada campanha ativa no momento)
+  const tabBilhetesContainer = document.getElementById('lista-bilhetes-premiados');
+  if (tabBilhetesContainer) {
+    const todosBilhetes = db.bilhetesPremiados || [];
+    // Filtrar bilhetes disponíveis (ou sem status definido)
+    const bilhetesDisponiveis = todosBilhetes.filter(b => b.status === 'disponivel' || !b.status);
 
+    // Mapear campanhas ativas no momento
+    const campanhasAtivas = [];
+    if (db.destaque && db.destaque.titulo) {
+      campanhasAtivas.push({
+        id: db.destaque.id || 'destaque_1',
+        titulo: db.destaque.titulo,
+        precoCota: db.destaque.precoCota,
+        imagemUrl: db.destaque.imagemUrl,
+        linkCheckout: db.destaque.linkCheckout,
+        tipo: 'Destaque Principal'
+      });
+    }
 
-  // 4. Render Vídeos / Comprovações (Ordem cronológica: mais novos no topo)
+    if (Array.isArray(db.acoes)) {
+      db.acoes.forEach(a => {
+        if (a.localExibicao !== 'Aba: Encerradas' && a.status !== 'encerrada') {
+          campanhasAtivas.push({
+            id: a.id,
+            titulo: a.titulo,
+            precoCota: a.precoCota,
+            imagemUrl: a.imagemUrl,
+            linkCheckout: a.linkCheckout,
+            tipo: a.localExibicao === 'Aba: Relâmpago' ? 'Ação Relâmpago' : 'Ação Ativa'
+          });
+        }
+      });
+    }
+
+    // Agrupar bilhetes disponíveis por campanha ativa
+    const gruposPorCampanha = [];
+
+    campanhasAtivas.forEach(campanha => {
+      const bilhetesDaCampanha = bilhetesDisponiveis.filter(b => 
+        b.acaoId === campanha.id || 
+        (b.acaoTitulo && b.acaoTitulo.toLowerCase().trim() === campanha.titulo.toLowerCase().trim())
+      );
+
+      if (bilhetesDaCampanha.length > 0) {
+        gruposPorCampanha.push({
+          campanha,
+          bilhetes: bilhetesDaCampanha
+        });
+      }
+    });
+
+    // Se houver bilhetes disponíveis cadastrados com campanha geral ou ainda não atribuída
+    const bilhetesRestantes = bilhetesDisponiveis.filter(b => 
+      !gruposPorCampanha.some(g => g.bilhetes.some(item => item.id === b.id))
+    );
+    if (bilhetesRestantes.length > 0) {
+      gruposPorCampanha.push({
+        campanha: {
+          id: 'geral',
+          titulo: bilhetesRestantes[0].acaoTitulo || 'Ação em Andamento',
+          precoCota: '',
+          imagemUrl: DEFAULT_CARD_IMG,
+          linkCheckout: whatsappSuporte,
+          tipo: 'Ação Ativa'
+        },
+        bilhetes: bilhetesRestantes
+      });
+    }
+
+    if (gruposPorCampanha.length > 0) {
+      tabBilhetesContainer.innerHTML = gruposPorCampanha.map(({ campanha, bilhetes }) => {
+        const linkAcao = getWhatsAppActionLink(campanha, whatsappSuporte, campanha.titulo);
+        const imgSrc = (campanha.imagemUrl && campanha.imagemUrl.trim()) ? campanha.imagemUrl.trim() : DEFAULT_CARD_IMG;
+
+        return `
+          <div class="bg-white rounded-2xl shadow-sm border border-emerald-200/70 overflow-hidden hover:shadow-md transition-shadow">
+              <!-- Cabeçalho da Campanha Ativa -->
+              <div class="p-4 bg-gradient-to-r from-emerald-50/70 via-gray-50 to-white border-b border-emerald-100 flex items-center justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                      <div class="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden border border-gray-200 flex-shrink-0">
+                          <img src="${imgSrc}" alt="${escapeHtml(campanha.titulo)}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='${DEFAULT_CARD_IMG}';">
+                      </div>
+                      <div>
+                          <span class="bg-emerald-100 text-emerald-800 text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border border-emerald-200 inline-flex items-center gap-1">
+                              <i class="ph-fill ph-ticket"></i> ${escapeHtml(campanha.tipo || 'Ação Ativa')}
+                          </span>
+                          <h4 class="font-bold text-gray-900 text-sm sm:text-base leading-snug mt-0.5">${escapeHtml(campanha.titulo)}</h4>
+                          ${campanha.precoCota ? `<p class="text-xs text-gray-500">Cota: apenas R$ ${campanha.precoCota}</p>` : ''}
+                      </div>
+                  </div>
+                  <a href="${linkAcao}" target="_blank" class="flex-shrink-0 bg-brand-dark hover:bg-black text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm flex items-center gap-1 transition-transform active:scale-95">
+                      <span>Participar</span> <i class="ph-bold ph-arrow-right"></i>
+                  </a>
+              </div>
+
+              <!-- Lista de Bilhetes Disponíveis -->
+              <div class="p-4 space-y-2.5">
+                  <div class="flex items-center justify-between text-[11px] text-gray-500 font-bold uppercase tracking-wider px-1">
+                      <span>Número Premiado</span>
+                      <span>Prêmio Instantâneo</span>
+                  </div>
+
+                  <div class="grid grid-cols-1 gap-2.5">
+                      ${bilhetes.map(b => `
+                          <div class="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-emerald-50/60 to-white border border-emerald-200/80 hover:border-emerald-300 transition-colors shadow-xs">
+                              <div class="flex items-center gap-3">
+                                  <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-base shadow-sm shadow-emerald-600/30">
+                                      <i class="ph-fill ph-ticket"></i>
+                                  </div>
+                                  <div>
+                                      <span class="font-mono text-lg font-black tracking-wider text-emerald-950">${escapeHtml(b.numero)}</span>
+                                      <div class="flex items-center gap-1 mt-0.5">
+                                          <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.2 rounded-full">
+                                              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Disponível
+                                          </span>
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="text-right">
+                                  <span class="inline-block bg-white border border-emerald-200 px-3 py-1.5 rounded-xl font-extrabold text-sm text-emerald-800 shadow-xs">
+                                      ${escapeHtml(b.premio)}
+                                  </span>
+                              </div>
+                          </div>
+                      `).join('')}
+                  </div>
+              </div>
+
+              <!-- Rodapé da Campanha: Chamada para Ação -->
+              <div class="p-3 bg-emerald-50/30 border-t border-emerald-100/70 flex items-center justify-between gap-3 text-xs">
+                  <span class="text-gray-600 flex items-center gap-1 font-medium">
+                      <i class="ph-fill ph-sparkle text-amber-500"></i> ${bilhetes.length} bilhete${bilhetes.length === 1 ? '' : 's'} disponível${bilhetes.length === 1 ? '' : 'is'}
+                  </span>
+                  <a href="${linkAcao}" target="_blank" class="font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1">
+                      Garantir cotas desta ação <i class="ph-bold ph-caret-right"></i>
+                  </a>
+              </div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      tabBilhetesContainer.innerHTML = `
+        <div class="bg-white rounded-2xl p-8 text-center border border-gray-200 shadow-sm">
+            <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3 text-2xl">
+                <i class="ph-fill ph-ticket"></i>
+            </div>
+            <h4 class="font-bold text-gray-800 text-base mb-1">Nenhum Bilhete Premiado disponível no momento</h4>
+            <p class="text-xs text-gray-500 max-w-xs mx-auto">Novos números e prêmios instantâneos são liberados com frequência. Fique atento às nossas ações ativas!</p>
+        </div>
+      `;
+    }
+  }
+
+  // 5. Render Vídeos / Comprovações (Ordem cronológica: mais novos no topo)
   const tabVideosContainer = document.querySelector('#tab-resultados .space-y-6');
   if (tabVideosContainer && db.videos && db.videos.length > 0) {
     const sortedVideos = sortVideosChronological(db.videos);
@@ -300,4 +452,14 @@ function sortVideosChronological(videos) {
     const idB = parseInt((b.id || '').replace(/\D/g, ''), 10) || 0;
     return idB - idA;
   });
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }

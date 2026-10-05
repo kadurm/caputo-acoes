@@ -203,18 +203,50 @@
       "thumbnailUrl": "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800&auto=format&fit=crop&q=80"
     },
     {
-      "id": "video_8",
-      "titulo": "Bilhete Premiado iPhone - Ana Raquel (Feira de Santana - BA)",
-      "data": "Comprovante de Entrega",
-      "videoUrl": "Sorteios/Finalizadas/Ana%20Raquel-%20%20Feira%20de%20Santana%20-%20BA%2C%20bilhete%20premiado%20iPhone.mp4",
-      "thumbnailUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80"
-    },
-    {
       "id": "video_9",
       "titulo": "Bilhete Premiado iPhone - Ricardo (São João del Rei - MG)",
       "data": "Comprovante de Entrega",
       "videoUrl": "Sorteios/Finalizadas/Ricardo%20-%20S%C3%A3o%20Jo%C3%A3o%20del%20rei%20%2C%20iPhone%20bilhete%20iPhone.mp4",
       "thumbnailUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "video_8",
+      "titulo": "Bilhete Premiado iPhone - Ana Raquel (Feira de Santana - BA)",
+      "data": "Comprovante de Entrega",
+      "videoUrl": "Sorteios/Finalizadas/Ana%20Raquel-%20%20Feira%20de%20Santana%20-%20BA%2C%20bilhete%20premiado%20iPhone.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80"
+    }
+  ],
+  "bilhetesPremiados": [
+    {
+      "id": "bilhete_1",
+      "acaoId": "destaque_1",
+      "acaoTitulo": "Nova Hilux",
+      "numero": "55555",
+      "premio": "R$ 500,00 no PIX",
+      "status": "disponivel",
+      "ganhador": "",
+      "criadoEm": "2026-10-01T12:00:00.000Z"
+    },
+    {
+      "id": "bilhete_2",
+      "acaoId": "destaque_1",
+      "acaoTitulo": "Nova Hilux",
+      "numero": "77777",
+      "premio": "R$ 1.000,00 no PIX",
+      "status": "disponivel",
+      "ganhador": "",
+      "criadoEm": "2026-10-01T12:00:00.000Z"
+    },
+    {
+      "id": "bilhete_3",
+      "acaoId": "acao_1",
+      "acaoTitulo": "iPhone 16 Pro Max 256GB",
+      "numero": "11111",
+      "premio": "R$ 250,00 no PIX",
+      "status": "disponivel",
+      "ganhador": "",
+      "criadoEm": "2026-10-01T12:00:00.000Z"
     }
   ],
   "config": {
@@ -224,10 +256,13 @@
     "cloudinaryUploadPreset": "caputo_videos"
   },
   "analytics": {
-    "today": "01/10/2026",
+    "today": "05/10/2026",
     "todayViews": 0,
     "totalViews": 0,
     "history": {}
   },
-  "updatedAt": "2020-01-01T00:00:00.000Z"
+  "updatedAt": "2026-10-05T17:11:13.432Z",
+  "financeiro": {
+    "transacoes": []
+  }
 }

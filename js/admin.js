@@ -272,6 +272,10 @@ function renderAdminDashboard(db) {
   const statAcessos = document.getElementById('stat-acessos-hoje') || document.querySelector('#view-dashboard .grid > div:nth-child(2) p.text-3xl');
   if (statAcessos) statAcessos.textContent = Number(todayViews).toLocaleString('pt-BR');
 
+  const totalBilhetesDisponiveis = (db.bilhetesPremiados || []).filter(b => b.status === 'disponivel' || !b.status).length;
+  const statBilhetes = document.getElementById('stat-bilhetes-premiados');
+  if (statBilhetes) statBilhetes.textContent = totalBilhetesDisponiveis;
+
   const totalVideos = db.videos ? db.videos.length : 0;
   const statVideos = document.getElementById('stat-videos-entregas') || document.getElementById('stat-premios-entregues') || document.querySelector('#view-dashboard .grid > div:nth-child(3) p.text-3xl');
   if (statVideos) statVideos.textContent = totalVideos;
@@ -389,6 +393,10 @@ function renderAdminDashboard(db) {
       </tr>
     `;
   }
+
+  // Render Bilhetes Premiados (Tabela e Opções de Campanhas Ativas)
+  updateCampaignSelectOptions(db);
+  renderBilhetesTable(db);
 
   // Render Grid: Ganhadores
   const ganhadoresGrid = document.querySelector('#view-ganhadores .grid');
@@ -811,7 +819,8 @@ function formatDateInputToBR(dateInputVal) {
 let currentEditState = {
   acao: null,
   ganhador: null,
-  video: null
+  video: null,
+  bilhete: null
 };
 
 // Funções para Abrir Modais em Modo de Edição
@@ -1072,6 +1081,355 @@ async function deleteAcaoItem(id) {
     }
   } catch (err) {
     showToast('Erro ao remover ação.', 'error');
+  }
+}
+
+// ========================================================
+// MÓDULO DE GESTÃO: BILHETES PREMIADOS (CRUD & FILTROS)
+// ========================================================
+
+function updateCampaignSelectOptions(db) {
+  const currentDb = db || window.adminDataCache;
+  if (!currentDb) return;
+
+  const selectModal = document.getElementById('bilhete-acao');
+  const selectFiltro = document.getElementById('filtro-bilhete-campanha');
+
+  const campanhasAtivas = [];
+
+  if (currentDb.destaque && currentDb.destaque.titulo) {
+    campanhasAtivas.push({
+      id: currentDb.destaque.id || 'destaque_1',
+      titulo: currentDb.destaque.titulo,
+      label: `⭐ ${currentDb.destaque.titulo} (Destaque Principal)`
+    });
+  }
+
+  if (Array.isArray(currentDb.acoes)) {
+    currentDb.acoes.forEach(a => {
+      if (a.localExibicao !== 'Aba: Encerradas' && a.status !== 'encerrada') {
+        const tag = a.localExibicao === 'Aba: Relâmpago' ? '⚡ Relâmpago' : 'Ativa';
+        campanhasAtivas.push({
+          id: a.id,
+          titulo: a.titulo,
+          label: `${a.titulo} (${tag})`
+        });
+      }
+    });
+  }
+
+  // Preencher Select do Modal
+  if (selectModal) {
+    const previousVal = selectModal.value;
+    selectModal.innerHTML = campanhasAtivas.map(c => 
+      `<option value="${c.id}" data-titulo="${escapeHtml(c.titulo)}">${escapeHtml(c.label)}</option>`
+    ).join('');
+    if (previousVal && campanhasAtivas.some(c => c.id === previousVal)) {
+      selectModal.value = previousVal;
+    }
+  }
+
+  // Preencher Select do Filtro
+  if (selectFiltro) {
+    const previousFiltroVal = selectFiltro.value || 'todas';
+    let optionsHtml = '<option value="todas">Todas as Campanhas</option>';
+    campanhasAtivas.forEach(c => {
+      optionsHtml += `<option value="${c.id}">${escapeHtml(c.label)}</option>`;
+    });
+    selectFiltro.innerHTML = optionsHtml;
+    if (previousFiltroVal) {
+      selectFiltro.value = previousFiltroVal;
+    }
+  }
+}
+
+function renderBilhetesFiltered() {
+  if (window.adminDataCache) {
+    renderBilhetesTable(window.adminDataCache);
+  }
+}
+
+function renderBilhetesTable(db) {
+  const currentDb = db || window.adminDataCache;
+  if (!currentDb) return;
+
+  const bilhetes = currentDb.bilhetesPremiados || [];
+  const tbody = document.getElementById('bilhetes-table-tbody');
+  const badgeDisponiveis = document.getElementById('badge-bilhetes-disponiveis');
+  const badgeContemplados = document.getElementById('badge-bilhetes-contemplados');
+
+  const countDisponiveis = bilhetes.filter(b => b.status === 'disponivel' || !b.status).length;
+  const countContemplados = bilhetes.filter(b => b.status === 'contemplado').length;
+
+  if (badgeDisponiveis) badgeDisponiveis.textContent = `${countDisponiveis} Disponíveis`;
+  if (badgeContemplados) badgeContemplados.textContent = `${countContemplados} Contemplados`;
+
+  const statBilhetes = document.getElementById('stat-bilhetes-premiados');
+  if (statBilhetes) statBilhetes.textContent = countDisponiveis;
+
+  if (!tbody) return;
+
+  // Filtros aplicados
+  const filtroCampanha = document.getElementById('filtro-bilhete-campanha')?.value || 'todas';
+  const filtroStatus = document.getElementById('filtro-bilhete-status')?.value || 'todos';
+
+  let filtrados = bilhetes;
+
+  if (filtroCampanha !== 'todas') {
+    filtrados = filtrados.filter(b => b.acaoId === filtroCampanha);
+  }
+
+  if (filtroStatus === 'disponivel') {
+    filtrados = filtrados.filter(b => b.status === 'disponivel' || !b.status);
+  } else if (filtroStatus === 'contemplado') {
+    filtrados = filtrados.filter(b => b.status === 'contemplado');
+  }
+
+  if (filtrados.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="p-8 text-center text-gray-400 text-sm">
+          ${bilhetes.length === 0 
+            ? 'Nenhum bilhete premiado cadastrado. Clique em "+ Novo Bilhete Premiado" acima para cadastrar.' 
+            : 'Nenhum bilhete premiado corresponde aos filtros selecionados.'}
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtrados.map(b => {
+    const isDisponivel = b.status === 'disponivel' || !b.status;
+    const statusHtml = isDisponivel
+      ? `<button type="button" onclick="toggleStatusBilhete('${b.id}')" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold rounded-lg inline-flex items-center gap-1.5 transition-colors cursor-pointer" title="Clique para alternar para Contemplado">
+           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Disponível
+         </button>`
+      : `<button type="button" onclick="toggleStatusBilhete('${b.id}')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold rounded-lg inline-flex items-center gap-1.5 transition-colors cursor-pointer" title="Clique para alternar para Disponível">
+           <i class="ph-fill ph-check-circle text-amber-600"></i> Contemplado
+         </button>`;
+
+    return `
+      <tr class="hover:bg-gray-50/80 transition-colors">
+          <td class="p-4 whitespace-nowrap">
+              <span class="font-mono text-base font-extrabold text-emerald-950 bg-emerald-50/80 px-3 py-1 rounded-xl border border-emerald-200 inline-block shadow-xs">
+                  #${escapeHtml(b.numero)}
+              </span>
+          </td>
+          <td class="p-4">
+              <p class="font-bold text-gray-900">${escapeHtml(b.premio)}</p>
+              ${b.ganhador ? `<p class="text-xs text-amber-800 font-semibold mt-0.5"><i class="ph-bold ph-trophy"></i> Ganhador: ${escapeHtml(b.ganhador)}</p>` : ''}
+          </td>
+          <td class="p-4 whitespace-nowrap">
+              <span class="px-2.5 py-1 bg-gray-100 text-gray-800 text-xs font-semibold rounded-lg border border-gray-200 inline-flex items-center gap-1">
+                  <i class="ph ph-target text-gray-500"></i> ${escapeHtml(b.acaoTitulo || 'Campanha')}
+              </span>
+          </td>
+          <td class="p-4 whitespace-nowrap">
+              ${statusHtml}
+          </td>
+          <td class="p-4 text-right whitespace-nowrap">
+              <div class="flex justify-end gap-1.5">
+                  <button type="button" onclick="openEditBilhete('${b.id}')" class="text-gray-500 hover:text-brand-dark bg-white border border-gray-200 hover:bg-gray-100 p-2 rounded-lg transition-colors" title="Editar Bilhete">
+                      <i class="ph-bold ph-pencil-simple text-base"></i>
+                  </button>
+                  <button type="button" onclick="deleteBilheteItem('${b.id}')" class="text-gray-400 hover:text-red-600 bg-white border border-gray-200 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Excluir Bilhete">
+                      <i class="ph-bold ph-trash text-base"></i>
+                  </button>
+              </div>
+          </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function openEditBilhete(id) {
+  if (!window.adminDataCache || !window.adminDataCache.bilhetesPremiados) return;
+  const b = window.adminDataCache.bilhetesPremiados.find(item => item.id === id);
+  if (!b) {
+    showToast('Bilhete premiado não encontrado.', 'error');
+    return;
+  }
+
+  currentEditState.bilhete = b;
+  openModal('modal-bilhete', true);
+
+  updateCampaignSelectOptions(window.adminDataCache);
+
+  const idInput = document.getElementById('bilhete-id');
+  if (idInput) idInput.value = b.id;
+  const acaoSelect = document.getElementById('bilhete-acao');
+  if (acaoSelect && b.acaoId) acaoSelect.value = b.acaoId;
+  const numeroInput = document.getElementById('bilhete-numero');
+  if (numeroInput) numeroInput.value = b.numero || '';
+  const premioInput = document.getElementById('bilhete-premio');
+  if (premioInput) premioInput.value = b.premio || '';
+  const statusSelect = document.getElementById('bilhete-status');
+  if (statusSelect) statusSelect.value = b.status || 'disponivel';
+  const ganhadorInput = document.getElementById('bilhete-ganhador');
+  if (ganhadorInput) ganhadorInput.value = b.ganhador || '';
+
+  const titleEl = document.getElementById('modal-bilhete-title');
+  if (titleEl) titleEl.textContent = 'Editar Bilhete Premiado';
+
+  const submitEl = document.getElementById('modal-bilhete-submit');
+  if (submitEl) submitEl.innerHTML = '<i class="ph-bold ph-check"></i> Salvar Alterações';
+}
+
+async function submitNovoBilhete(event) {
+  event.preventDefault();
+
+  const idInput = document.getElementById('bilhete-id');
+  const id = idInput ? idInput.value.trim() : '';
+  const isEditing = !!id;
+
+  const selectAcao = document.getElementById('bilhete-acao');
+  const acaoId = selectAcao ? selectAcao.value : '';
+  const selectedOption = selectAcao ? selectAcao.options[selectAcao.selectedIndex] : null;
+  const acaoTitulo = selectedOption ? (selectedOption.getAttribute('data-titulo') || selectedOption.textContent.replace(/⭐|\(.*?\)/g, '').trim()) : 'Campanha';
+
+  const numeroInput = document.getElementById('bilhete-numero');
+  const premioInput = document.getElementById('bilhete-premio');
+  const statusSelect = document.getElementById('bilhete-status');
+  const ganhadorInput = document.getElementById('bilhete-ganhador');
+
+  const numero = numeroInput ? numeroInput.value.trim() : '';
+  const premio = premioInput ? premioInput.value.trim() : '';
+  const status = statusSelect ? statusSelect.value : 'disponivel';
+  const ganhador = ganhadorInput ? ganhadorInput.value.trim() : '';
+
+  if (!numero || !premio) {
+    showToast('Informe o número do bilhete e a descrição/valor do prêmio.', 'error');
+    return;
+  }
+
+  const payload = {
+    acaoId,
+    acaoTitulo,
+    numero,
+    premio,
+    status,
+    ganhador
+  };
+
+  const submitBtn = document.getElementById('modal-bilhete-submit');
+  const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Salvar Bilhete';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-1"></i> Salvando...';
+  }
+
+  try {
+    const url = isEditing ? `/api/bilhetes/${encodeURIComponent(id)}` : '/api/bilhetes';
+    const method = isEditing ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const json = await res.json();
+    if (json.success) {
+      showToast(isEditing ? 'Bilhete premiado atualizado com sucesso!' : 'Bilhete premiado cadastrado com sucesso!', 'success');
+      closeModal();
+      event.target.reset();
+      currentEditState.bilhete = null;
+
+      if (json.fullDb) {
+        window.adminDataCache = json.fullDb;
+        try {
+          localStorage.setItem('caputo_app_data', JSON.stringify(json.fullDb));
+        } catch (e) {}
+        renderAdminDashboard(json.fullDb);
+      } else {
+        loadAdminData();
+      }
+    } else {
+      showToast(json.message || 'Erro ao salvar bilhete premiado.', 'error');
+    }
+  } catch (err) {
+    console.error('Erro ao salvar bilhete premiado:', err);
+    showToast('Erro ao comunicar com o servidor.', 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnText;
+    }
+  }
+}
+
+async function deleteBilheteItem(id) {
+  if (!confirm('Deseja realmente excluir este bilhete premiado?')) return;
+
+  try {
+    const res = await fetch(`/api/bilhetes/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    });
+
+    const json = await res.json();
+    if (json.success) {
+      showToast('Bilhete premiado excluído com sucesso!', 'success');
+      if (json.fullDb) {
+        window.adminDataCache = json.fullDb;
+        try {
+          localStorage.setItem('caputo_app_data', JSON.stringify(json.fullDb));
+        } catch (e) {}
+        renderAdminDashboard(json.fullDb);
+      } else {
+        loadAdminData();
+      }
+    } else {
+      showToast(json.message || 'Erro ao excluir bilhete.', 'error');
+    }
+  } catch (err) {
+    console.error('Erro ao excluir bilhete premiado:', err);
+    showToast('Erro ao comunicar com o servidor.', 'error');
+  }
+}
+
+async function toggleStatusBilhete(id) {
+  if (!window.adminDataCache || !window.adminDataCache.bilhetesPremiados) return;
+  const b = window.adminDataCache.bilhetesPremiados.find(item => item.id === id);
+  if (!b) return;
+
+  const novoStatus = (b.status === 'contemplado') ? 'disponivel' : 'contemplado';
+
+  try {
+    const res = await fetch(`/api/bilhetes/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        status: novoStatus
+      })
+    });
+
+    const json = await res.json();
+    if (json.success) {
+      showToast(`Bilhete #${b.numero} marcado como ${novoStatus === 'contemplado' ? 'Contemplado' : 'Disponível'}!`, 'success');
+      if (json.fullDb) {
+        window.adminDataCache = json.fullDb;
+        try {
+          localStorage.setItem('caputo_app_data', JSON.stringify(json.fullDb));
+        } catch (e) {}
+        renderAdminDashboard(json.fullDb);
+      } else {
+        loadAdminData();
+      }
+    } else {
+      showToast(json.message || 'Erro ao alterar status.', 'error');
+    }
+  } catch (err) {
+    console.error('Erro ao alternar status do bilhete:', err);
+    showToast('Erro ao comunicar com o servidor.', 'error');
   }
 }
 
@@ -1784,5 +2142,15 @@ async function deleteTransacaoItem(id) {
     console.error('Erro ao excluir transação financeira:', err);
     showToast('Erro ao comunicar com o servidor.', 'error');
   }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 

@@ -165,6 +165,9 @@
             <button onclick="switchView('acoes', this)" data-view="acoes" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl font-medium transition-all">
                 <i class="ph ph-target text-xl"></i> Gerenciar Ações
             </button>
+            <button onclick="switchView('bilhetes', this)" data-view="bilhetes" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl font-medium transition-all">
+                <i class="ph ph-ticket text-xl"></i> Bilhetes Premiados
+            </button>
             <button onclick="switchView('videos', this)" data-view="videos" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl font-medium transition-all">
                 <i class="ph ph-trophy text-xl"></i> Resultados
             </button>
@@ -238,35 +241,45 @@
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
                     <!-- Stat Card 1 -->
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center text-green-600 border border-green-100">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 flex items-center gap-4">
+                        <div class="w-13 h-13 rounded-full bg-green-50 flex items-center justify-center text-green-600 border border-green-100 p-3">
                             <i class="ph-fill ph-target text-2xl"></i>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500 font-medium">Ações Ativas</p>
-                            <p id="stat-acoes-ativas" class="text-3xl font-bold text-gray-900">0</p>
+                            <p class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Ações Ativas</p>
+                            <p id="stat-acoes-ativas" class="text-2xl font-extrabold text-gray-900">0</p>
                         </div>
                     </div>
-                    <!-- Stat Card 2 -->
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100">
-                            <i class="ph-fill ph-users text-2xl"></i>
+                    <!-- Stat Card 2: Bilhetes Premiados -->
+                    <div onclick="switchView('bilhetes')" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 flex items-center gap-4 cursor-pointer hover:border-emerald-300 transition-colors group">
+                        <div class="w-13 h-13 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100 p-3 group-hover:scale-105 transition-transform">
+                            <i class="ph-fill ph-ticket text-2xl"></i>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500 font-medium">Acessos Hoje</p>
-                            <p id="stat-acessos-hoje" class="text-3xl font-bold text-gray-900">0</p>
+                            <p class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Bilhetes Premiados</p>
+                            <p id="stat-bilhetes-premiados" class="text-2xl font-extrabold text-emerald-700">0</p>
                         </div>
                     </div>
                     <!-- Stat Card 3 -->
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-600 border border-yellow-100">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 flex items-center gap-4">
+                        <div class="w-13 h-13 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100 p-3">
+                            <i class="ph-fill ph-users text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Acessos Hoje</p>
+                            <p id="stat-acessos-hoje" class="text-2xl font-extrabold text-gray-900">0</p>
+                        </div>
+                    </div>
+                    <!-- Stat Card 4 -->
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 flex items-center gap-4">
+                        <div class="w-13 h-13 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-600 border border-yellow-100 p-3">
                             <i class="ph-fill ph-trophy text-2xl"></i>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500 font-medium">Resultados</p>
-                            <p id="stat-videos-entregas" class="text-3xl font-bold text-gray-900">0</p>
+                            <p class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Resultados</p>
+                            <p id="stat-videos-entregas" class="text-2xl font-extrabold text-gray-900">0</p>
                         </div>
                     </div>
                 </div>
@@ -461,6 +474,70 @@
                 </div>
             </div>
 
+            <!-- VIEW: BILHETES PREMIADOS -->
+            <div id="view-bilhetes" class="view-section hidden">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                            <h2 class="text-2xl font-bold text-gray-900">Bilhetes Premiados</h2>
+                        </div>
+                        <p class="text-gray-500 text-sm mt-1">Cadastre números da sorte e prêmios instantâneos vinculados a cada ação ativa.</p>
+                    </div>
+                    <button onclick="openModal('modal-bilhete')" class="bg-brand-dark hover:bg-black text-white px-5 py-2.5 rounded-xl font-bold shadow-md flex items-center gap-2 transition-transform active:scale-95 text-sm">
+                        <i class="ph-bold ph-plus-circle text-lg text-emerald-400"></i> Novo Bilhete Premiado
+                    </button>
+                </div>
+
+                <!-- Barra de Filtros e Resumo -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 mb-6 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+                    <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Campanha:</label>
+                            <select id="filtro-bilhete-campanha" onchange="renderBilhetesFiltered()" class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 outline-none focus:border-brand-dark">
+                                <option value="todas">Todas as Campanhas</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Status:</label>
+                            <select id="filtro-bilhete-status" onchange="renderBilhetesFiltered()" class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 outline-none focus:border-brand-dark">
+                                <option value="todos">Todos os Status</option>
+                                <option value="disponivel" selected>Apenas Disponíveis</option>
+                                <option value="contemplado">Contemplados / Entregues</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs font-semibold">
+                        <span id="badge-bilhetes-disponiveis" class="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl">0 Disponíveis</span>
+                        <span id="badge-bilhetes-contemplados" class="px-3 py-1 bg-gray-100 text-gray-600 border border-gray-200 rounded-xl">0 Contemplados</span>
+                    </div>
+                </div>
+
+                <!-- Tabela de Bilhetes Premiados -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wider font-bold">
+                                    <th class="p-4 w-36">Número da Sorte</th>
+                                    <th class="p-4">Prêmio Instantâneo</th>
+                                    <th class="p-4">Campanha Vinculada</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4 text-right">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bilhetes-table-tbody" class="divide-y divide-gray-100">
+                                <tr>
+                                    <td colspan="5" class="p-8 text-center text-gray-400 text-sm">
+                                        <i class="ph-bold ph-spinner animate-spin text-xl mr-2 text-brand-dark align-middle"></i> Carregando bilhetes...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- VIEW: RESULTADOS / VIDEOS -->
             <div id="view-videos" class="view-section hidden">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -550,6 +627,10 @@
                 <i class="ph-bold ph-target text-xl"></i>
                 <span>Ações</span>
             </button>
+            <button id="mobile-nav-bilhetes" onclick="switchView('bilhetes')" class="mobile-nav-btn flex-1 flex flex-col items-center gap-0.5 py-1 text-gray-500 text-[10px] transition-colors" aria-label="Bilhetes Premiados">
+                <i class="ph-bold ph-ticket text-xl"></i>
+                <span>Bilhetes</span>
+            </button>
             <button id="mobile-nav-videos" onclick="switchView('videos')" class="mobile-nav-btn flex-1 flex flex-col items-center gap-0.5 py-1 text-gray-500 text-[10px] transition-colors" aria-label="Resultados">
                 <i class="ph-bold ph-trophy text-xl"></i>
                 <span>Resultados</span>
@@ -635,6 +716,78 @@
                     <button type="button" onclick="closeModal()" class="px-5 py-3 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-bold transition-colors">Cancelar</button>
                     <button type="submit" id="modal-acao-submit" class="px-5 py-3 bg-brand-dark hover:bg-black text-white rounded-xl font-bold shadow-md transition-transform active:scale-95 flex items-center gap-2">
                         <i class="ph-bold ph-check"></i> Salvar Ação
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- MODAL: BILHETE PREMIADO (CRIAR / EDITAR) -->
+        <div id="modal-bilhete" class="modal-content modal-body-scroll hidden bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b border-gray-100 p-5 flex justify-between items-center z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                        <i class="ph-bold ph-ticket text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 id="modal-bilhete-title" class="text-lg font-bold text-gray-900 font-serif tracking-wide">Cadastrar Bilhete Premiado</h3>
+                        <p class="text-xs text-gray-500">Prêmio instantâneo com número da sorte</p>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 p-2 rounded-lg transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+
+            <form class="p-6 space-y-5" onsubmit="submitNovoBilhete(event)">
+                <input type="hidden" id="bilhete-id" value="">
+                
+                <!-- Ação / Campanha Ativa Vinculada -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-800 mb-1.5">Campanha (Ação Ativa Vinculada)</label>
+                    <select id="bilhete-acao" class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900 text-sm bg-white" required>
+                        <!-- Populado dinamicamente com as campanhas ativas -->
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500">O bilhete premiado será exibido na aba do site sob esta campanha ativa.</p>
+                </div>
+
+                <!-- Número do Bilhete -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-800 mb-1.5">Número do Bilhete Premiado</label>
+                    <div class="relative">
+                        <span class="absolute left-3.5 top-3 text-gray-400 font-bold text-sm">
+                            <i class="ph-bold ph-hash"></i>
+                        </span>
+                        <input type="text" id="bilhete-numero" placeholder="Ex: 55555" required class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900 font-mono font-bold text-base">
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Número da cota premiada que o participante receberá se contemplado.</p>
+                </div>
+
+                <!-- Descrição / Valor do Prêmio -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-800 mb-1.5">Descrição / Valor do Prêmio</label>
+                    <input type="text" id="bilhete-premio" placeholder="Ex: R$ 500,00 no PIX ou iPhone 16" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark text-gray-900 text-sm">
+                    <p class="mt-1 text-xs text-gray-500">Exibido com destaque para os clientes no site (ex: R$ 500,00 ou R$ 1.000,00).</p>
+                </div>
+
+                <!-- Status e Ganhador -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-1.5">Status</label>
+                        <select id="bilhete-status" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 outline-none focus:border-brand-dark text-gray-900 text-sm bg-white">
+                            <option value="disponivel" selected>Disponível (Em Aberto)</option>
+                            <option value="contemplado">Contemplado (Saiu para Ganhador)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-1.5">Ganhador (Opcional)</label>
+                        <input type="text" id="bilhete-ganhador" placeholder="Nome do contemplado..." class="w-full px-3 py-2.5 rounded-xl border border-gray-300 outline-none focus:border-brand-dark text-gray-900 text-sm">
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-gray-100 flex gap-3 justify-end">
+                    <button type="button" onclick="closeModal()" class="px-5 py-2.5 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-bold transition-colors text-sm">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="modal-bilhete-submit" class="px-6 py-2.5 bg-brand-dark hover:bg-black text-white rounded-xl font-bold shadow-md transition-transform active:scale-95 flex items-center gap-2 text-sm">
+                        <i class="ph-bold ph-check"></i> Salvar Bilhete
                     </button>
                 </div>
             </form>
@@ -931,6 +1084,22 @@
                         infoEl.innerHTML = '<i class="ph-bold ph-video-camera text-base text-red-600"></i> Nenhum arquivo selecionado ainda.';
                         infoEl.className = "mt-2 text-xs text-gray-500 flex items-center gap-1.5";
                     }
+                } else if (modalId === 'modal-bilhete') {
+                    const idInput = document.getElementById('bilhete-id');
+                    if (idInput) idInput.value = '';
+                    const titleEl = document.getElementById('modal-bilhete-title');
+                    if (titleEl) titleEl.textContent = 'Cadastrar Bilhete Premiado';
+                    const submitEl = document.getElementById('modal-bilhete-submit');
+                    if (submitEl) submitEl.innerHTML = '<i class="ph-bold ph-check"></i> Salvar Bilhete';
+                    const numeroInput = document.getElementById('bilhete-numero');
+                    if (numeroInput) numeroInput.value = '';
+                    const premioInput = document.getElementById('bilhete-premio');
+                    if (premioInput) premioInput.value = '';
+                    const statusSelect = document.getElementById('bilhete-status');
+                    if (statusSelect) statusSelect.value = 'disponivel';
+                    const ganhadorInput = document.getElementById('bilhete-ganhador');
+                    if (ganhadorInput) ganhadorInput.value = '';
+                    if (typeof updateCampaignSelectOptions === 'function') updateCampaignSelectOptions();
                 } else if (modalId === 'modal-transacao') {
                     const dataInput = document.getElementById('transacao-data');
                     if (dataInput) dataInput.value = new Date().toISOString().split('T')[0];
@@ -1054,6 +1223,6 @@
         }
     </script>
     <!-- JAVASCRIPT ADMIN CONECTADO À API -->
-    <script src="js/admin.js?v=20261001_10"></script>
+    <script src="js/admin.js?v=20261005_bilhetes"></script>
 </body>
 </html>

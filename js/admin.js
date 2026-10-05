@@ -1096,24 +1096,37 @@ function updateCampaignSelectOptions(db) {
   const selectFiltro = document.getElementById('filtro-bilhete-campanha');
 
   const campanhasAtivas = [];
+  const titulosVistos = new Set();
+  const idsVistos = new Set();
 
   if (currentDb.destaque && currentDb.destaque.titulo) {
+    const titNorm = currentDb.destaque.titulo.trim().toLowerCase();
+    const id = currentDb.destaque.id || 'destaque_1';
     campanhasAtivas.push({
-      id: currentDb.destaque.id || 'destaque_1',
+      id: id,
       titulo: currentDb.destaque.titulo,
       label: `⭐ ${currentDb.destaque.titulo} (Destaque Principal)`
     });
+    titulosVistos.add(titNorm);
+    idsVistos.add(id);
   }
 
   if (Array.isArray(currentDb.acoes)) {
     currentDb.acoes.forEach(a => {
       if (a.localExibicao !== 'Aba: Encerradas' && a.status !== 'encerrada') {
+        const titNorm = a.titulo ? a.titulo.trim().toLowerCase() : '';
+        const id = a.id || '';
+        if (titNorm && titulosVistos.has(titNorm)) return;
+        if (id && idsVistos.has(id)) return;
+
         const tag = a.localExibicao === 'Aba: Relâmpago' ? '⚡ Relâmpago' : 'Ativa';
         campanhasAtivas.push({
           id: a.id,
           titulo: a.titulo,
           label: `${a.titulo} (${tag})`
         });
+        if (titNorm) titulosVistos.add(titNorm);
+        if (id) idsVistos.add(id);
       }
     });
   }

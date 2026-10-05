@@ -227,42 +227,87 @@ const DEFAULT_CARD_IMG = 'https://images.unsplash.com/photo-1552519507-da3b142c6
     // Filtrar bilhetes disponíveis (ou sem status definido)
     const bilhetesDisponiveis = todosBilhetes.filter(b => b.status === 'disponivel' || !b.status);
 
-    // Mapear campanhas ativas no momento
+    // Mapear campanhas ativas no momento (sem duplicidade entre destaque e acoes)
     const campanhasAtivas = [];
+    const titulosVistos = new Map(); // tituloNormalizado -> indice em campanhasAtivas
+    const idsVistos = new Map();
+
     if (db.destaque && db.destaque.titulo) {
-      campanhasAtivas.push({
-        id: db.destaque.id || 'destaque_1',
+      const titNorm = db.destaque.titulo.trim().toLowerCase();
+      const idNorm = db.destaque.id || 'destaque_1';
+      const cDestaque = {
+        id: idNorm,
         titulo: db.destaque.titulo,
         precoCota: db.destaque.precoCota,
         imagemUrl: db.destaque.imagemUrl,
         linkCheckout: db.destaque.linkCheckout,
-        tipo: 'Destaque Principal'
-      });
+        tipo: 'Destaque Principal',
+        allIds: [idNorm]
+      };
+      campanhasAtivas.push(cDestaque);
+      titulosVistos.set(titNorm, 0);
+      idsVistos.set(idNorm, 0);
     }
 
     if (Array.isArray(db.acoes)) {
       db.acoes.forEach(a => {
         if (a.localExibicao !== 'Aba: Encerradas' && a.status !== 'encerrada') {
-          campanhasAtivas.push({
+          const titNorm = a.titulo ? a.titulo.trim().toLowerCase() : '';
+          const idNorm = a.id || '';
+
+          // Se já existe campanha cadastrada com o mesmo título (ex: Destaque Principal é a mesma ação ativa)
+          if (titNorm && titulosVistos.has(titNorm)) {
+            const idx = titulosVistos.get(titNorm);
+            const existente = campanhasAtivas[idx];
+            if (idNorm && !existente.allIds.includes(idNorm)) {
+              existente.allIds.push(idNorm);
+              idsVistos.set(idNorm, idx);
+            }
+            if (!existente.imagemUrl && a.imagemUrl) existente.imagemUrl = a.imagemUrl;
+            if (!existente.linkCheckout && a.linkCheckout) existente.linkCheckout = a.linkCheckout;
+            if (!existente.precoCota && a.precoCota) existente.precoCota = a.precoCota;
+            return;
+          }
+
+          if (idNorm && idsVistos.has(idNorm)) {
+            return;
+          }
+
+          const novaCampanha = {
             id: a.id,
             titulo: a.titulo,
             precoCota: a.precoCota,
             imagemUrl: a.imagemUrl,
             linkCheckout: a.linkCheckout,
-            tipo: a.localExibicao === 'Aba: Relâmpago' ? 'Ação Relâmpago' : 'Ação Ativa'
-          });
+            tipo: a.localExibicao === 'Aba: Relâmpago' ? 'Ação Relâmpago' : 'Ação Ativa',
+            allIds: [a.id]
+          };
+          campanhasAtivas.push(novaCampanha);
+          const novoIdx = campanhasAtivas.length - 1;
+          if (titNorm) titulosVistos.set(titNorm, novoIdx);
+          if (idNorm) idsVistos.set(idNorm, novoIdx);
         }
       });
     }
 
-    // Agrupar bilhetes disponíveis por campanha ativa
+    // Agrupar bilhetes disponíveis por campanha ativa garantindo que nenhum bilhete seja duplicado
     const gruposPorCampanha = [];
+    const bilhetesProcessados = new Set();
 
     campanhasAtivas.forEach(campanha => {
-      const bilhetesDaCampanha = bilhetesDisponiveis.filter(b => 
-        b.acaoId === campanha.id || 
-        (b.acaoTitulo && b.acaoTitulo.toLowerCase().trim() === campanha.titulo.toLowerCase().trim())
-      );
+      const bilhetesDaCampanha = bilhetesDisponiveis.filter(b => {
+        const uniqueKey = b.id || `${b.numero}_${b.acaoId || b.acaoTitulo}`;
+        if (bilhetesProcessados.has(uniqueKey)) return false;
+
+        const matchId = b.acaoId && (campanha.id === b.acaoId || (campanha.allIds && campanha.allIds.includes(b.acaoId)));
+        const matchTitulo = b.acaoTitulo && campanha.titulo && (b.acaoTitulo.toLowerCase().trim() === campanha.titulo.toLowerCase().trim());
+
+        if (matchId || matchTitulo) {
+          bilhetesProcessados.add(uniqueKey);
+          return true;
+        }
+        return false;
+      });
 
       if (bilhetesDaCampanha.length > 0) {
         gruposPorCampanha.push({
@@ -272,21 +317,34 @@ const DEFAULT_CARD_IMG = 'https://images.unsplash.com/photo-1552519507-da3b142c6
       }
     });
 
-    // Se houver bilhetes disponíveis cadastrados com campanha geral ou ainda não atribuída
-    const bilhetesRestantes = bilhetesDisponiveis.filter(b => 
-      !gruposPorCampanha.some(g => g.bilhetes.some(item => item.id === b.id))
-    );
+    // Se houver bilhetes disponíveis restantes (ex: ação com título diferente das ativas)
+    const bilhetesRestantes = bilhetesDisponiveis.filter(b => {
+      const uniqueKey = b.id || `${b.numero}_${b.acaoId || b.acaoTitulo}`;
+      return !bilhetesProcessados.has(uniqueKey);
+    });
+
     if (bilhetesRestantes.length > 0) {
-      gruposPorCampanha.push({
-        campanha: {
-          id: 'geral',
-          titulo: bilhetesRestantes[0].acaoTitulo || 'Ação em Andamento',
-          precoCota: '',
-          imagemUrl: DEFAULT_CARD_IMG,
-          linkCheckout: whatsappSuporte,
-          tipo: 'Ação Ativa'
-        },
-        bilhetes: bilhetesRestantes
+      const mapaRestantes = new Map();
+      bilhetesRestantes.forEach(b => {
+        const tituloAcao = b.acaoTitulo || 'Ação em Andamento';
+        if (!mapaRestantes.has(tituloAcao)) {
+          mapaRestantes.set(tituloAcao, []);
+        }
+        mapaRestantes.get(tituloAcao).push(b);
+      });
+
+      mapaRestantes.forEach((bilhetesLista, tituloAcao) => {
+        gruposPorCampanha.push({
+          campanha: {
+            id: 'geral_' + Math.random().toString(36).substring(2, 6),
+            titulo: tituloAcao,
+            precoCota: '',
+            imagemUrl: DEFAULT_CARD_IMG,
+            linkCheckout: whatsappSuporte,
+            tipo: 'Ação Ativa'
+          },
+          bilhetes: bilhetesLista
+        });
       });
     }
 
